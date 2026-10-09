@@ -50,4 +50,4 @@ Customers only submit their contact information and selected product IDs. The da
 
 Bookings retain the product title and price snapshots even if a product is later edited or deleted. Hidden products stay in the database with `active = false` and are excluded from public catalog reads.
 
-Enable SPA fallback on the host so direct `/dashboard` visits load the React app.
+The Vercel deployment uses the root `vercel.json` rewrite to serve the React app for client-side routes such as `/dashboard`. For other hosts, enable their equivalent SPA fallback.

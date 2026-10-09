@@ -35,7 +35,9 @@ npm install
 npm run dev
 ```
 
-For Vercel, configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the project’s Environment Variables for each required deployment environment, then redeploy. These are browser-visible public connection settings; do not configure a service-role or secret key for this Vite frontend.
+For Vercel, use `npm run build` as the build command and `dist` as the output directory. The included `vercel.json` sends client-side routes such as `/dashboard` to the app entry point, so directly visiting or refreshing those routes works.
+
+Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the Vercel project's Environment Variables for each required deployment environment, then redeploy after adding or changing them. Vite embeds these values at build time. Without them, the deployed app stays in preview mode and bookings/dashboard data will not work. These are browser-visible public connection settings; do not configure a service-role or secret key for this Vite frontend.
 
 Build and lint:
 
