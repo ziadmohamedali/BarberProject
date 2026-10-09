@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../../lib/i18n";
 import "./ProductModal.css";
 
 function ProductModal({
@@ -8,6 +9,7 @@ function ProductModal({
   onSelect,
   onRemove,
 }) {
+  const { t } = useLanguage();
   const initialImage = product?.picture || product?.gallery?.[0] || "";
   const [activeImage, setActiveImage] = useState(initialImage);
 
@@ -44,7 +46,7 @@ function ProductModal({
         <div className="modal-image-section">
           {activeImage
             ? <img className="modal-main-image" src={activeImage} alt={product.title} />
-            : <div className="modal-image-placeholder" role="img" aria-label="No image available">HADAD</div>}
+            : <div className="modal-image-placeholder" role="img" aria-label={t("No image available")}>HADAD</div>}
 
           {availableGallery.length > 1 && (
               <div className="thumbnail-list">
@@ -71,8 +73,8 @@ function ProductModal({
         <div className="modal-content">
           <span className="product-category">
             {product.category === "haircut"
-              ? "Haircut"
-              : "Package"}
+              ? t("Haircut")
+              : t("Package")}
           </span>
 
           <h2 id="product-modal-title">{product.title}</h2>
@@ -83,18 +85,18 @@ function ProductModal({
           </p>
 
                     {product.duration && (
-            <div className="product-duration">{product.duration} min</div>
+            <div className="product-duration">{product.duration} {t("min")}</div>
           )}
 
           <div className="product-price">
                         {product.oldPrice !== null && product.oldPrice !== undefined && product.oldPrice !== "" && (
               <span className="old-price">
-                {product.oldPrice} EGP
+                {product.oldPrice} {t("EGP")}
               </span>
             )}
 
             <span className="current-price">
-              {product.price} EGP
+              {product.price} {t("EGP")}
             </span>
           </div>
 
@@ -103,8 +105,8 @@ function ProductModal({
             onClick={handleSelect}
           >
             {isSelected
-              ? "Remove from Selection"
-              : "Select Product"}
+              ? t("Remove from Selection")
+              : t("Select Product")}
           </button>
         </div>
       </div>

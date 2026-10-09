@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { validateContactSettings } from "../../features/auth/contactSettings/contactSettingsService";
+import { useLanguage } from "../../lib/i18n";
 import "./ContactSettings.css";
 
 function ContactSettings({ contactSettings, onSave }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState({ ...contactSettings });
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -22,7 +24,7 @@ function ContactSettings({ contactSettings, onSave }) {
     try {
       validated = validateContactSettings(form);
     } catch (validationError) {
-      setError(validationError.message);
+      setError(t(validationError.message));
       return;
     }
 
@@ -32,7 +34,7 @@ function ContactSettings({ contactSettings, onSave }) {
       setForm(updated);
       setSaved(true);
     } catch (saveError) {
-      setError(saveError.message || "Contact settings could not be saved. Please try again.");
+      setError(t(saveError.message || "Contact settings could not be saved. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -42,13 +44,13 @@ function ContactSettings({ contactSettings, onSave }) {
     <section className="contact-settings-panel">
       <div className="editor-heading">
         <div>
-          <span className="eyebrow">PUBLIC CONTACT DETAILS</span>
-          <h2>Contact Settings</h2>
+          <span className="eyebrow">{t("PUBLIC CONTACT DETAILS")}</span>
+          <h2>{t("Contact Settings")}</h2>
         </div>
       </div>
       <form className="contact-settings-form" onSubmit={handleSubmit}>
         <label>
-          WhatsApp phone number
+          {t("WhatsApp phone number")}
           <input
             type="tel"
             autoComplete="tel"
@@ -59,7 +61,7 @@ function ContactSettings({ contactSettings, onSave }) {
           />
         </label>
         <label>
-          Contact phone number (optional)
+          {t("Contact phone number (optional)")}
           <input
             type="tel"
             autoComplete="tel"
@@ -69,7 +71,7 @@ function ContactSettings({ contactSettings, onSave }) {
           />
         </label>
         <label>
-          Instagram profile URL (optional)
+          {t("Instagram profile URL (optional)")}
           <input
             type="url"
             value={form.instagramUrl}
@@ -78,7 +80,7 @@ function ContactSettings({ contactSettings, onSave }) {
           />
         </label>
         <label>
-          Facebook profile URL (optional)
+          {t("Facebook profile URL (optional)")}
           <input
             type="url"
             value={form.facebookUrl}
@@ -87,17 +89,17 @@ function ContactSettings({ contactSettings, onSave }) {
           />
         </label>
         <label>
-          InstaPay address / IPA (optional)
+          {t("InstaPay address / IPA (optional)")}
           <input
             type="text"
             maxLength={120}
             value={form.instapayAddress}
             onChange={(event) => updateField("instapayAddress", event.target.value)}
-            placeholder="Your InstaPay address"
+            placeholder={t("Your InstaPay address")}
           />
         </label>
         <label>
-          InstaPay mobile number (optional)
+          {t("InstaPay mobile number (optional)")}
           <input
             type="tel"
             autoComplete="tel"
@@ -106,10 +108,10 @@ function ContactSettings({ contactSettings, onSave }) {
             placeholder="+20 100 000 0000"
           />
         </label>
-        {error && <p className="editor-error contact-settings-message" role="alert">{error}</p>}
-        {saved && <p className="password-saved contact-settings-message" role="status">Contact settings saved.</p>}
+        {error && <p className="editor-error contact-settings-message" role="alert">{t(error)}</p>}
+        {saved && <p className="password-saved contact-settings-message" role="status">{t("Contact settings saved.")}</p>}
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? t("Saving…") : t("Save Changes")}
         </button>
       </form>
     </section>

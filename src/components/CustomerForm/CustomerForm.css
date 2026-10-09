@@ -42,7 +42,8 @@
   font-weight: 700;
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 14px;
@@ -53,7 +54,12 @@
   font-size: 15px;
 }
 
-.form-group input:focus {
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
   border-color: var(--accent);
 }
 

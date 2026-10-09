@@ -4,38 +4,6 @@
   color: var(--ink);
 }
 
-.dashboard-header {
-  height: 76px;
-  padding: 0 max(4%, calc((100% - 1160px) / 2));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--header-bg);
-  color: var(--header-text);
-}
-
-.dashboard-header > div {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.dashboard-kicker {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--muted);
-}
-
-.outline-button {
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font-size: 12px;
-}
-
 .dashboard-shell {
   width: min(1160px, 92%);
   margin: 64px auto;
@@ -55,12 +23,6 @@
   text-transform: uppercase;
 }
 
-.dashboard-nav {
-  display: flex;
-  gap: 8px;
-}
-
-.dashboard-nav button,
 .dashboard-tabs button {
   padding: 12px 17px;
   border: 1px solid var(--line);
@@ -73,16 +35,10 @@
   letter-spacing: .6px;
 }
 
-.dashboard-nav button.active,
 .dashboard-tabs button.active {
   border-color: var(--button-bg);
   background: var(--button-bg);
   color: var(--button-text);
-}
-
-.dashboard-nav button span {
-  margin-left: 5px;
-  opacity: .65;
 }
 
 .dashboard-toolbar {
@@ -167,6 +123,208 @@
   background: var(--surface-muted);
   color: var(--ink);
   font-size: 14px;
+}
+
+.appointment-management {
+  display: grid;
+  gap: 18px;
+}
+
+.appointment-list-heading,
+.appointment-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.appointment-list-heading h2 {
+  margin: 7px 0 0;
+  font: 500 30px/1.1 'Inter', 'Noto Sans Arabic', sans-serif;
+}
+
+.appointment-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.appointment-filters label,
+.deposit-status-control {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.appointment-filters input,
+.appointment-filters select,
+.deposit-status-control select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.appointment-list {
+  display: grid;
+  gap: 14px;
+}
+
+.appointment-card {
+  display: grid;
+  gap: 15px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.appointment-card-top h3 {
+  margin: 6px 0;
+  font-size: 19px;
+}
+
+.appointment-card-top p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.appointment-status {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--status-bg);
+  color: var(--status-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.appointment-status.status-confirmed,
+.appointment-status.status-completed,
+.appointment-status.status-awaiting_payment {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.appointment-status.status-rejected,
+.appointment-status.status-cancelled {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.appointment-services {
+  display: grid;
+  gap: 8px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.appointment-services > div,
+.appointment-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 13px;
+}
+
+.appointment-card-meta {
+  color: var(--muted);
+}
+
+.appointment-card-meta strong {
+  color: var(--ink);
+}
+
+.appointment-details summary {
+  width: fit-content;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.appointment-details dl {
+  display: grid;
+  gap: 9px;
+  margin: 13px 0 0;
+}
+
+.appointment-details dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, .5fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.appointment-details dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.appointment-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.appointment-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.appointment-actions > a,
+.appointment-actions > button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.appointment-actions > button:hover,
+.appointment-actions > a:hover {
+  border-color: var(--accent);
+}
+
+.appointment-actions > button.danger-action {
+  color: var(--danger);
+}
+
+.appointment-actions .deposit-status-control {
+  min-width: 175px;
+  margin-left: auto;
+}
+
+.appointment-payment-hint {
+  align-self: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.appointment-success {
+  margin: 0;
+  color: var(--status-success-text);
+  font-size: 13px;
 }
 
 .editor-grid textarea {
@@ -460,6 +618,20 @@
 }
 
 @media (max-width: 760px) {
+  .appointment-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-details dl > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .appointment-actions .deposit-status-control {
+    width: 100%;
+    margin-left: 0;
+  }
+
   .dashboard-shell {
     margin: 38px auto;
   }
@@ -467,6 +639,14 @@
   .dashboard-title-row {
     align-items: start;
     flex-direction: column;
+  }
+
+  .dashboard-summary {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: right;
   }
 
   .dashboard-title-row h1 {
@@ -512,22 +692,6 @@
 }
 
 @media (max-width: 520px) {
-  .dashboard-header {
-    height: 66px;
-  }
-
-  .dashboard-header > div {
-    gap: 10px;
-  }
-
-  .dashboard-kicker {
-    display: none;
-  }
-
-  .outline-button {
-    padding: 9px;
-  }
-
   .dashboard-toolbar {
     align-items: stretch;
     flex-direction: column;

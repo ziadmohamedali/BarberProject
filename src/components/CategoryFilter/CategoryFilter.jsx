@@ -1,20 +1,22 @@
 import "./CategoryFilter.css";
+import { useLanguage } from "../../lib/i18n";
 
 function CategoryFilter({ activeCategory, onCategoryChange }) {
+  const { t } = useLanguage();
   return (
     <div className="category-filter">
       <button
         className={activeCategory === "haircut" ? "active" : ""}
         onClick={() => onCategoryChange("haircut")}
       >
-        Haircuts
+        {t("Haircuts")}
       </button>
 
       <button
         className={activeCategory === "package" ? "active" : ""}
         onClick={() => onCategoryChange("package")}
       >
-        Packages
+        {t("Packages")}
       </button>
     </div>
   );

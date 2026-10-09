@@ -65,6 +65,25 @@
   cursor: pointer;
 }
 
+.owner-login-language {
+  position: absolute;
+  top: 17px;
+  left: 17px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.owner-login-language:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
 .owner-login-error {
   margin: 0;
   color: #a12e2e;

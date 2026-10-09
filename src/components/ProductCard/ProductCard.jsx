@@ -1,43 +1,45 @@
 import "./ProductCard.css";
+import { useLanguage } from "../../lib/i18n";
 
 function ProductCard({
   product,
   isSelected,
   onOpen,
 }) {
+  const { t } = useLanguage();
   return (
     <article className={`product-card ${isSelected ? "selected" : ""}`}>
       <div className="product-card-image">
         {product.picture
           ? <img src={product.picture} alt={product.title} />
-          : <div className="product-image-placeholder" role="img" aria-label="No image available">HADAD</div>}
+          : <div className="product-image-placeholder" role="img" aria-label={t("No image available")}>HADAD</div>}
 
         {isSelected && (
           <span className="selected-badge">
-            Selected
+            {t("Selected")}
           </span>
         )}
       </div>
 
       <div className="product-card-content">
         <span className="product-category">
-          {product.category === "haircut" ? "Haircut" : "Package"}
+          {t(product.category === "haircut" ? "Haircut" : "Package")}
         </span>
 
         <h3>{product.title}</h3>
 
                 <p>{product.description}</p>
-        {product.duration && <span className="card-duration">{product.duration} min</span>}
+        {product.duration && <span className="card-duration">{product.duration} {t("min")}</span>}
 
         <div className="product-price">
                     {product.oldPrice !== null && product.oldPrice !== undefined && product.oldPrice !== "" && (
             <span className="old-price">
-              {product.oldPrice} EGP
+              {product.oldPrice} {t("EGP")}
             </span>
           )}
 
           <span className="current-price">
-            {product.price} EGP
+            {product.price} {t("EGP")}
           </span>
         </div>
 
@@ -45,7 +47,7 @@ function ProductCard({
           className="details-button"
           onClick={() => onOpen(product)}
         >
-          View Details
+          {t("View Details")}
         </button>
       </div>
     </article>

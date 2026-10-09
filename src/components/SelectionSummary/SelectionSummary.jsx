@@ -1,4 +1,5 @@
 import { calculateBookingTotals } from "../../features/auth/bookings/bookingCalculations";
+import { useLanguage } from "../../lib/i18n";
 import "./SelectionSummary.css";
 
 function SelectionSummary({
@@ -6,6 +7,7 @@ function SelectionSummary({
   onRemove,
   onContinue,
 }) {
+  const { t } = useLanguage();
   const { total, deposit } = calculateBookingTotals(selectedProducts);
 
   if (selectedProducts.length === 0) {
@@ -15,8 +17,8 @@ function SelectionSummary({
   return (
     <section className="selection-summary">
       <div className="section-heading">
-        <span>Your Selection</span>
-        <h2>Selected Products</h2>
+        <span>{t("Your Selection")}</span>
+        <h2>{t("Selected Products")}</h2>
       </div>
 
       <div className="selected-list">
@@ -24,28 +26,28 @@ function SelectionSummary({
           <div className="selected-item" key={product.id}>
             <div>
               <h3>{product.title}</h3>
-              <p>{product.price} EGP</p>
+              <p>{product.price} {t("EGP")}</p>
             </div>
 
             <button onClick={() => onRemove(product.id)}>
-              Remove
+              {t("Remove")}
             </button>
           </div>
         ))}
       </div>
 
       <div className="selection-total">
-        <span>Total</span>
-        <strong>{total} EGP</strong>
+        <span>{t("Total")}</span>
+        <strong>{total} {t("EGP")}</strong>
       </div>
 
-      {total < deposit && <p className="selection-minimum-note">Add services worth at least {deposit} EGP to continue.</p>}
+      {total < deposit && <p className="selection-minimum-note">{t("Add services worth at least {deposit} EGP to continue.", { deposit })}</p>}
       <button
         className="continue-button"
         onClick={onContinue}
         disabled={total < deposit}
       >
-        Continue
+        {t("Continue")}
       </button>
     </section>
   );

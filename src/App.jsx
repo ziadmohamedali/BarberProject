@@ -3,13 +3,16 @@ import Home from "./pages/Home/Home";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import OwnerLoginModal from "./components/OwnerLoginModal/OwnerLoginModal";
 import { isSupabaseConfigured } from "./lib/supabase";
-import { createBooking, getBookings, updateBooking } from "./features/auth/bookings/bookingService";
+import { createAppointment, getAppointmentErrorMessage, getAppointments, getBookings, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
 import { emptyContactSettings, getContactSettings, saveContactSettings } from "./features/auth/contactSettings/contactSettingsService";
 import { createProduct, deleteProduct, deleteUnusedProductImages, getProducts, updateProduct, uploadProductImage } from "./features/auth/products/productService";
 import sampleProducts from "./features/auth/products/productData";
+import { LanguageContext, useLanguage } from "./lib/i18n";
+import { useLanguageState } from "./i18n";
 import useAuth from "./features/auth/useAuth";
 
-function App() {
+function AppContent() {
+  const { t } = useLanguage();
   const { user: owner, loading: authLoading, login, logout, updatePassword } = useAuth();
   const ownerAuthenticated = Boolean(owner);
   const [theme, setTheme] = useState(() => {
@@ -24,6 +27,7 @@ function App() {
   const [products, setProducts] = useState(() => isSupabaseConfigured ? [] : sampleProducts);
   const [contactSettings, setContactSettings] = useState(emptyContactSettings);
   const [bookings, setBookings] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [pageError, setPageError] = useState("");
 
@@ -61,30 +65,32 @@ function App() {
       setProducts(nextProducts);
       setContactSettings(nextContactSettings);
     } catch (error) {
-      setPageError(error.message || "Could not load services.");
+      setPageError(t(error.message || "Could not load services."));
     } finally {
       setDataLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadDashboard = useCallback(async () => {
     setDataLoading(true);
     setPageError("");
     try {
-      const [nextProducts, nextBookings, nextContactSettings] = await Promise.all([
+      const [nextProducts, nextBookings, nextAppointments, nextContactSettings] = await Promise.all([
         getProducts({ owner: true }),
         getBookings(),
+        getAppointments(),
         getContactSettings(),
       ]);
       setProducts(nextProducts);
       setBookings(nextBookings);
+      setAppointments(nextAppointments);
       setContactSettings(nextContactSettings);
     } catch (error) {
-      setPageError(error.message || "Could not load dashboard data.");
+      setPageError(t(getAppointmentErrorMessage(error, "Could not load dashboard data.")));
     } finally {
       setDataLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -95,7 +101,13 @@ function App() {
     else if (path !== "/dashboard") loadPublicProducts();
   }, [path, ownerAuthenticated, loadDashboard, loadPublicProducts]);
 
-  const handleCreateBooking = async (booking) => createBooking(booking);
+  const handleCreateBooking = async (appointment) => createAppointment(appointment);
+
+  const handleUpdateAppointment = async (id, changes) => {
+    const updated = await updateAppointment(id, changes);
+    setAppointments((current) => current.map((appointment) => appointment.id === updated.id ? updated : appointment));
+    return updated;
+  };
 
   const handleCreateProduct = async (product) => {
     const created = await createProduct(product);
@@ -135,6 +147,7 @@ function App() {
   const handleLogout = async () => {
     await logout();
     setBookings([]);
+    setAppointments([]);
     navigate("/");
   };
 
@@ -145,21 +158,22 @@ function App() {
   };
 
   if (path === "/dashboard" && authLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>Checking owner access…</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Checking owner access…")}</p></div></main>;
   }
 
   if (path === "/dashboard" && ownerAuthenticated && dataLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>Loading…</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Loading…")}</p></div></main>;
   }
 
   if (path === "/dashboard" && ownerAuthenticated) {
     return <>
-      {pageError && <div className="app-error" role="alert">{pageError}</div>}
+      {pageError && <div className="app-error" role="alert">{t(pageError)}</div>}
       <Dashboard
         theme={theme}
         onToggleTheme={toggleTheme}
         products={products}
         bookings={bookings}
+        appointments={appointments}
         contactSettings={contactSettings}
         onCreateProduct={handleCreateProduct}
         onUploadProductImage={uploadProductImage}
@@ -168,6 +182,7 @@ function App() {
         onDeleteProduct={handleDeleteProduct}
         onReorderProducts={handleReorderProducts}
         onUpdateBooking={handleUpdateBooking}
+        onUpdateAppointment={handleUpdateAppointment}
         onSaveContactSettings={handleSaveContactSettings}
         onChangeOwnerPassword={updatePassword}
         onBackToShop={() => navigate("/")}
@@ -178,9 +193,9 @@ function App() {
   }
 
   return <>
-    {!isSupabaseConfigured && <div className="app-error" role="status">Preview mode: Supabase is not configured. You can browse sample services, but customer bookings and dashboard data changes require Supabase.</div>}
-    {pageError && <div className="app-error" role="alert">{pageError}</div>}
-    {dataLoading ? <main className="success-screen"><div className="success-content"><span>HADAD</span><p>Loading services…</p></div></main> : (
+    {!isSupabaseConfigured && <div className="app-error" role="status">{t("Preview mode: Supabase is not configured. You can browse sample services, but customer bookings and dashboard data changes require Supabase.")}</div>}
+    {pageError && <div className="app-error" role="alert">{t(pageError)}</div>}
+    {dataLoading ? <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Loading services…")}</p></div></main> : (
       <Home
         theme={theme}
         onToggleTheme={toggleTheme}
@@ -196,6 +211,15 @@ function App() {
       onLogin={handleOwnerLogin}
     />
   </>;
+}
+
+function App() {
+  const language = useLanguageState();
+  return (
+    <LanguageContext.Provider value={language}>
+      <AppContent />
+    </LanguageContext.Provider>
+  );
 }
 
 export default App;
