@@ -8,6 +8,7 @@ import CustomerForm from "../../components/CustomerForm/CustomerForm";
 import NavigationSidebar from "../../components/NavigationSidebar/NavigationSidebar";
 import { getAppointmentConfirmation, getAppointmentErrorMessage } from "../../features/auth/bookings/bookingService";
 import { useLanguage } from "../../lib/i18n";
+import barberImage from "../../assets/barberimg.png";
 
 import "./Home.css";
 
@@ -254,7 +255,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
 
         <div className="hero-visual" aria-label={t("Portrait and service details")}>
           <div className="hero-photo-card">
-            <img src="https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1200&q=80" alt={t("Barber finishing a haircut")} />
+            <img src={barberImage} alt={t("Barber finishing a haircut")} />
             <div className="floating-badge top">{t("Modern Grooming")}</div>
             <div className="floating-badge bottom">{t("From 200 EGP")}</div>
           </div>

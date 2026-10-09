@@ -129,7 +129,7 @@ const translations = {
   "Premium Packages": "باقات مميزة",
   "Barber finishing a haircut": "حلاق يضع اللمسات الأخيرة على قصة شعر",
   "Modern Grooming": "عناية عصرية بالمظهر",
-  "From 200 EGP": "ابتداءً من ٢٠٠ ج.م",
+  "From 150 EGP": "ابتداءً من ١٥٠ ج.م",
   "Our Services": "خدماتنا",
   "Choose Your Style": "اختر إطلالتك",
   "Packages": "الباقات",
