@@ -3,7 +3,7 @@ import { useLanguage } from "../../lib/i18n";
 import "./OwnerLoginModal.css";
 
 function OwnerLoginModal({ isOpen, onClose, onLogin }) {
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,9 +38,6 @@ function OwnerLoginModal({ isOpen, onClose, onLogin }) {
   return (
     <div className="owner-login-overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="owner-login-modal" role="dialog" aria-modal="true" aria-labelledby="owner-login-title">
-        <button className="owner-login-language" type="button" onClick={() => setLanguage((current) => current === "ar" ? "en" : "ar")} aria-label={t(language === "ar" ? "Switch to English" : "Switch to Arabic")}>
-          {language === "ar" ? "English" : "العربية"}
-        </button>
         <button className="owner-login-close" type="button" onClick={onClose} aria-label={t("Close login")}>×</button>
         <span className="eyebrow">{t("HADAD OWNER ACCESS")}</span>
         <h2 id="owner-login-title">{t("Owner Login")}</h2>

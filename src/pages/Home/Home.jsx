@@ -28,7 +28,7 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
-function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreated, onOpenOwnerLogin }) {
+function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreated, onOpenOwnerLogin, loginOpen }) {
   const { language, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("haircut");
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -200,6 +200,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
           onBrandClick={handleBrandClick}
           theme={theme}
           onToggleTheme={onToggleTheme}
+          showThemeToggle={!loginOpen}
         />
         <div className="public-main">
         <main className="success-screen">
@@ -234,6 +235,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
         onBrandClick={handleBrandClick}
         theme={theme}
         onToggleTheme={onToggleTheme}
+        showThemeToggle={!loginOpen}
       />
       <div className="public-main">
       <main>
@@ -257,7 +259,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
           <div className="hero-photo-card">
             <img src={barberImage} alt={t("Barber finishing a haircut")} />
             <div className="floating-badge top">{t("Modern Grooming")}</div>
-            <div className="floating-badge bottom">{t("From 200 EGP")}</div>
+            <div className="floating-badge bottom">{t("From 150 EGP")}</div>
           </div>
         </div>
       </section>

@@ -203,6 +203,7 @@ function AppContent() {
         contactSettings={contactSettings}
         onBookingCreated={handleCreateBooking}
         onOpenOwnerLogin={() => setLoginOpen(true)}
+        loginOpen={loginOpen}
       />
     )}
     <OwnerLoginModal

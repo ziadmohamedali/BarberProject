@@ -48,6 +48,7 @@ function NavigationSidebar({
   onBrandClick,
   theme,
   onToggleTheme,
+  showThemeToggle = true,
   onBackToShop,
   onLogout,
 }) {
@@ -190,9 +191,9 @@ function NavigationSidebar({
         <button className="sidebar-link" type="button" onClick={toggleLanguage} title={collapsed && !mobile ? t("Switch language") : undefined} aria-label={t(language === "ar" ? "Switch to English" : "Switch to Arabic")}>
           <NavigationIcon name="language" /><span className="sidebar-link-label">{language === "ar" ? "English" : "العربية"}</span>
         </button>
-        <button className="sidebar-link" type="button" onClick={onToggleTheme} title={collapsed && !mobile ? t("Toggle theme") : undefined} aria-label={t(theme === "dark" ? "Switch to White theme" : "Switch to dark theme")}>
+        {showThemeToggle && <button className="sidebar-link" type="button" onClick={onToggleTheme} title={collapsed && !mobile ? t("Toggle theme") : undefined} aria-label={t(theme === "dark" ? "Switch to White theme" : "Switch to dark theme")}>
           <NavigationIcon name={theme === "dark" ? "sun" : "moon"} /><span className="sidebar-link-label">{t(theme === "dark" ? "White" : "Dark")}</span>
-        </button>
+        </button>}
       </div>
     </>
   );
@@ -209,10 +210,10 @@ function NavigationSidebar({
             <button type="button" onClick={toggleLanguage} aria-label={t(language === "ar" ? "Switch to English" : "Switch to Arabic")}>
               {language === "ar" ? "English" : "العربية"}
             </button>
-            <button type="button" onClick={onToggleTheme} aria-label={t(theme === "dark" ? "Switch to White theme" : "Switch to dark theme")}>
+            {showThemeToggle && <button type="button" onClick={onToggleTheme} aria-label={t(theme === "dark" ? "Switch to White theme" : "Switch to dark theme")}>
               <NavigationIcon name={theme === "dark" ? "sun" : "moon"} />
               <span>{t(theme === "dark" ? "White" : "Dark")}</span>
-            </button>
+            </button>}
           </div>
         </header>
       )}
