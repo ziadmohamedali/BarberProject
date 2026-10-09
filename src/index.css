@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Arabic:wght@100..900&display=swap');
+
+:root {
+  font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
+  --ink: #f3eee7;
+  --muted: #b4ada4;
+  --paper: #171615;
+  --accent: #d0a06e;
+  --line: #393632;
+  --card: #211f1c;
+  --surface: #211f1c;
+  --surface-muted: #292622;
+  --header-bg: #11100f;
+  --header-text: #f8f4ef;
+  --subtle-bg: rgba(255,255,255,.06);
+  --button-bg: #d0a06e;
+  --button-text: #171615;
+  --status-bg: #39342d;
+  --status-text: #d0c4b3;
+  --status-success-bg: #27382c;
+  --status-success-text: #a7d0ac;
+  --danger: #f19a91;
+  --danger-bg: #3a211f;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: #20201e;
+  --muted: #6e6962;
+  --paper: #f5f1ea;
+  --accent: #b77a48;
+  --line: #ded5cb;
+  --card: #fffdf9;
+  --surface: #fffdf9;
+  --surface-muted: #eee8df;
+  --header-bg: #eee9e2;
+  --header-text: #171614;
+  --subtle-bg: rgba(255,255,255,.72);
+  --button-bg: #20201e;
+  --button-text: #fff;
+  --status-bg: #eeeae4;
+  --status-text: #69645d;
+  --status-success-bg: #e8efe8;
+  --status-success-text: #47654b;
+  --danger: #a12e2e;
+  --danger-bg: #fff0ed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  transition: background-color .2s ease, color .2s ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: #d8b48c;
+  color: #171615;
+}
+
+:focus-visible {
+  outline: 3px solid #bd8750;
+  outline-offset: 3px;
+}
+
+.app-error {
+  position: relative;
+  z-index: 2;
+  padding: 12px 5%;
+  background: var(--danger-bg);
+  color: var(--danger);
+  text-align: center;
+  font-size: 13px;
+}
+
+.empty-services {
+  padding: 42px 20px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  text-align: center;
+}
+
+.form-submit-error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.success-whatsapp-link {
+  display: inline-block;
+  margin: 20px 8px 0;
+  padding: 15px 24px;
+  background: #20201e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.success-whatsapp-link:hover {
+  background: #4b3a2d;
+}

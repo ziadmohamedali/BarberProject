@@ -1,0 +1,41 @@
+.category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 34px;
+}
+
+.category-filter button {
+  min-width: 160px;
+  padding: 15px 26px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: .2s ease;
+  border-radius: 999px;
+}
+
+.category-filter button.active,
+.category-filter button:hover {
+  border-color: var(--button-bg);
+  background: var(--button-bg);
+  color: var(--button-text);
+  box-shadow: 0 8px 18px rgba(32, 32, 30, .08);
+}
+
+@media (max-width: 480px) {
+  .category-filter {
+    gap: 6px;
+  }
+
+  .category-filter button {
+    min-width: 0;
+    flex: 1;
+    padding: 13px 10px;
+  }
+}

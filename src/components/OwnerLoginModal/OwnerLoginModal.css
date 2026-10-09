@@ -1,0 +1,78 @@
+.owner-login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(12, 12, 11, .78);
+}
+
+.owner-login-modal {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 38px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 22px 80px rgba(0,0,0,.3);
+}
+
+.owner-login-modal h2 {
+  margin: 10px 0 24px;
+  font: 500 34px/1.05 'Inter', 'Noto Sans Arabic', sans-serif;
+  text-transform: uppercase;
+}
+
+.owner-login-modal form {
+  display: grid;
+  gap: 18px;
+}
+
+.owner-login-modal label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.owner-login-modal input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+  color: var(--ink);
+  font: inherit;
+}
+
+.owner-login-modal .primary-button {
+  width: 100%;
+}
+
+.owner-login-modal .primary-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.owner-login-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  font-size: 27px;
+  cursor: pointer;
+}
+
+.owner-login-error {
+  margin: 0;
+  color: #a12e2e;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .owner-login-modal {
+    padding: 32px 24px;
+  }
+}

@@ -1,0 +1,1 @@
+export const DEPOSIT_AMOUNT = 50;

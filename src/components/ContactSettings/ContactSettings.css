@@ -1,0 +1,57 @@
+.contact-settings-panel {
+  padding: 26px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.contact-settings-panel > .editor-heading h2 {
+  margin: 7px 0 0;
+  font: 500 27px 'Inter', 'Noto Sans Arabic', sans-serif;
+}
+
+.contact-settings-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.contact-settings-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.contact-settings-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.contact-settings-form .contact-settings-message {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.contact-settings-form > button {
+  justify-self: start;
+}
+
+@media (max-width: 600px) {
+  .contact-settings-panel {
+    padding: 18px;
+  }
+
+  .contact-settings-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-settings-form .contact-settings-message {
+    grid-column: auto;
+  }
+}

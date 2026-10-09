@@ -1,0 +1,123 @@
+.customer-form-section {
+  max-width: 700px;
+  margin: 85px auto;
+  padding: 0 20px;
+}
+
+.customer-form-section form {
+  padding: 30px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: 0 18px 38px rgba(19, 17, 14, .04);
+}
+
+.checkout-products {
+  margin: 0 0 18px;
+  padding: 0 30px;
+  list-style: none;
+}
+
+.checkout-products li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.checkout-products strong {
+  white-space: nowrap;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid var(--line);
+  outline: none;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.form-group input:focus {
+  border-color: var(--accent);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 6px;
+  color: var(--danger);
+}
+
+.payment-box {
+  margin-top: 27px;
+  padding: 18px 20px;
+  background: var(--surface-muted);
+}
+
+.payment-box div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+.payment-box div:last-child {
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+}
+
+.payment-note {
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: var(--button-bg);
+  color: var(--button-text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 14px;
+}
+
+.submit-button:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 600px) {
+  .customer-form-section {
+    margin: 58px auto;
+    padding: 0 4%;
+  }
+
+  .customer-form-section form {
+    padding: 22px 17px;
+  }
+
+  .checkout-products {
+    padding: 0 17px;
+  }
+}
