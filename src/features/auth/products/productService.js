@@ -1,12 +1,14 @@
 import { isSupabaseConfigured, supabaseRequest, uploadStorageImage, deleteStorageImages, validateProductImageFile } from "../../../lib/supabase";
 import { createLocalProduct, deleteLocalProduct, fileToDataUrl, getLocalProducts, updateLocalProduct } from "../../../lib/lightweightStore";
 
-export const uploadProductImage = async (file) => {
+export const uploadProductImage = async (file, onProgress = () => {}) => {
   if (!isSupabaseConfigured) {
     await validateProductImageFile(file);
-    return fileToDataUrl(file);
+    const dataUrl = await fileToDataUrl(file, onProgress);
+    onProgress(100);
+    return dataUrl;
   }
-  return uploadStorageImage(file);
+  return uploadStorageImage(file, onProgress);
 };
 
 const columns = "id,name,description,price,old_price,category,is_active,duration_minutes,image_url,gallery_images,display_order,created_at,updated_at";
@@ -49,6 +51,11 @@ function validateProduct(product) {
   const duration = product.duration === "" || product.duration == null ? null : Number(product.duration);
   if (duration !== null && (!Number.isInteger(duration) || duration <= 0)) {
     throw new Error("Duration must be a positive whole number of minutes.");
+  }
+
+  const sortOrder = Number(product.sortOrder ?? 0);
+  if (!Number.isInteger(sortOrder) || sortOrder < 0) {
+    throw new Error("Display order must be zero or a positive whole number.");
   }
 }
 

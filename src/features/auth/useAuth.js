@@ -22,7 +22,7 @@ export default function useAuth() {
       const authenticatedUser = session ? await getOwnerUser(session) : null;
       const isOwner = authenticatedUser ? await verifyOwner(session) : false;
       if (authenticatedUser && !isOwner) await signOutOwner();
-      setUser(isOwner ? authenticatedUser : null);
+      setUser(authenticatedUser && isOwner ? authenticatedUser : null);
     } catch {
       setUser(null);
       setError("Could not verify owner access. Check your connection and reload.");
@@ -33,20 +33,17 @@ export default function useAuth() {
 
   useEffect(() => {
     loadUser();
-    const handleStorage = (event) => {
-      if (event.key === "hadad-supabase-session") loadUser();
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
   }, [loadUser]);
 
   const login = async (username, password) => {
     setError("");
-    const session = await signInOwner(ownerUsernameToEmail(username), password);
+    const loginEmail = username.includes("@") ? username.trim().toLowerCase() : ownerUsernameToEmail(username);
+    const session = await signInOwner(loginEmail, password);
     const nextUser = await getOwnerUser(session);
-    if (!nextUser || !(await verifyOwner(session))) {
+    if (!nextUser) throw new Error("Could not verify your account.");
+    if (!(await verifyOwner(session))) {
       await signOutOwner();
-      throw new Error("Account is not authorized for owner access.");
+      throw new Error("This account is not authorized to manage the shop.");
     }
     setUser(nextUser);
     return nextUser;

@@ -1,8 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+/* eslint-disable react/prop-types -- Existing app components use JavaScript props without PropTypes. */
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAppointmentErrorMessage } from "../../features/auth/bookings/bookingService";
 import ContactSettings from "../../components/ContactSettings/ContactSettings";
 import NavigationSidebar from "../../components/NavigationSidebar/NavigationSidebar";
+import ProductEditor from "./ProductEditor";
 import { useLanguage } from "../../lib/i18n";
+import useScrollLock from "../../hooks/useScrollLock";
 import "./Dashboard.css";
 
 const whatsappNumber = (number = "") => {
@@ -27,9 +30,33 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
+const formatAppointmentDate = (value, language) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
+const formatAppointmentPrice = (value, language) => new Intl.NumberFormat(
+  language === "ar" ? "ar-EG" : "en-GB",
+  { maximumFractionDigits: 0 }
+).format(Number(value) || 0);
+
+const localDateKey = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
 const emptyProduct = (category) => ({
   picture: "", title: "", description: "", price: "", oldPrice: "",
-  category, duration: "", active: true, gallery: [],
+  category, duration: "", active: true, gallery: [], sortOrder: 0,
 });
 
 function Dashboard({ theme, onToggleTheme, products, bookings, appointments = [], contactSettings, onCreateProduct, onUploadProductImage, onDeleteUnusedProductImages, onUpdateProduct, onDeleteProduct, onReorderProducts, onUpdateBooking, onUpdateAppointment, onSaveContactSettings, onChangeOwnerPassword, onBackToShop, onLogout, onReload }) {
@@ -39,7 +66,9 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(null);
   const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirmation: "" });
@@ -47,8 +76,14 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordBusy, setPasswordBusy] = useState(false);
   const persistedImageUrls = useRef(new Set());
+  const productSubmittingRef = useRef(false);
+  const imageUploadRef = useRef(false);
   const [appointmentSearch, setAppointmentSearch] = useState("");
   const [appointmentStatus, setAppointmentStatus] = useState("all");
+  const [appointmentDepositStatus, setAppointmentDepositStatus] = useState("all");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentService, setAppointmentService] = useState("all");
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [appointmentMessage, setAppointmentMessage] = useState("");
 
   const categoryProducts = useMemo(
@@ -68,25 +103,36 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
     }
   };
 
-  const updateDraft = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
+  const updateDraft = (field, value) => {
+    setFormError("");
+    setFormSuccess("");
+    setDraft((current) => ({ ...current, [field]: value }));
+  };
 
   const uploadImage = async (event, target, index) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     input.value = "";
-    if (!file) return;
+    if (!file || imageUploadRef.current) return;
 
+    imageUploadRef.current = true;
     setFormError("");
+    setFormSuccess("");
+    setUploadProgress(0);
     setUploadingImage(true);
     try {
-      const imageUrl = await onUploadProductImage(file);
-      const previousImage = target === "picture" ? draft?.picture : draft?.gallery?.[index];
+      const imageUrl = await onUploadProductImage(file, setUploadProgress);
+      const galleryIndex = target === "gallery" && !draft?.gallery?.[index]
+        ? (draft?.gallery?.length || 0)
+        : index;
+      const previousImage = target === "picture" ? draft?.picture : draft?.gallery?.[galleryIndex];
       if (target === "picture") updateDraft("picture", imageUrl);
       else {
         setDraft((current) => {
           if (!current) return current;
           const gallery = [...(current.gallery || [])];
-          gallery[index] = imageUrl;
+          if (gallery[galleryIndex]) gallery[galleryIndex] = imageUrl;
+          else gallery.push(imageUrl);
           return { ...current, gallery };
         });
       }
@@ -97,6 +143,8 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       setFormError(t(error.message || "The image could not be uploaded."));
     } finally {
       setUploadingImage(false);
+      setUploadProgress(0);
+      imageUploadRef.current = false;
     }
   };
 
@@ -107,7 +155,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       setDraft((current) => {
         if (!current) return current;
         const gallery = [...(current.gallery || [])];
-        gallery[index] = "";
+        gallery.splice(index, 1);
         return { ...current, gallery };
       });
     }
@@ -123,16 +171,18 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
 
   const beginAdd = () => {
     setEditingId(null);
-    setDraft(emptyProduct(category));
+    setDraft({ ...emptyProduct(category), sortOrder: categoryProducts.length });
     persistedImageUrls.current = new Set();
     setFormError("");
+    setFormSuccess("");
   };
 
   const beginEdit = (product) => {
     setEditingId(product.id);
-    setDraft({ ...product, price: String(product.price), oldPrice: product.oldPrice == null ? "" : String(product.oldPrice), gallery: product.gallery || [] });
+    setDraft({ ...product, price: String(product.price), oldPrice: product.oldPrice == null ? "" : String(product.oldPrice), duration: product.duration == null ? "" : String(product.duration), sortOrder: Number(product.sortOrder ?? 0), gallery: Array.isArray(product.gallery) ? [...product.gallery] : [] });
     persistedImageUrls.current = new Set([product.picture, ...(product.gallery || [])].filter(Boolean));
     setFormError("");
+    setFormSuccess("");
   };
 
   const cancelDraft = async () => {
@@ -148,6 +198,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
 
   const saveProduct = async (event) => {
     event.preventDefault();
+    if (productSubmittingRef.current) return;
     const price = Number(draft.price);
     if (!draft.picture) {
       setFormError(t("Upload a main product image before saving."));
@@ -158,13 +209,18 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       return;
     }
     const oldPrice = draft.oldPrice === "" ? null : Number(draft.oldPrice);
-    if (draft.oldPrice !== "" && (!Number.isInteger(oldPrice) || oldPrice <= 0)) {
-      setFormError(t("Enter a positive whole-number old price or leave it empty."));
+    if (draft.oldPrice !== "" && (!Number.isInteger(oldPrice) || oldPrice <= price)) {
+      setFormError(t("Old price must be a whole number greater than the current price."));
       return;
     }
     const duration = draft.duration === "" ? null : Number(draft.duration);
     if (duration !== null && (!Number.isInteger(duration) || duration <= 0)) {
       setFormError(t("Duration must be a positive whole number of minutes."));
+      return;
+    }
+    const sortOrder = Number(draft.sortOrder);
+    if (!Number.isInteger(sortOrder) || sortOrder < 0) {
+      setFormError(t("Display order must be zero or a positive whole number."));
       return;
     }
     const saved = {
@@ -176,9 +232,13 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       oldPrice,
       duration,
       gallery: draft.gallery.filter(Boolean).slice(0, 4),
-      sortOrder: editingId === null ? categoryProducts.length : draft.sortOrder,
+      sortOrder,
     };
-    await runAction(async () => {
+    productSubmittingRef.current = true;
+    setBusy(true);
+    setFormError("");
+    setFormSuccess("");
+    try {
       if (editingId === null) await onCreateProduct(saved);
       else await onUpdateProduct(saved);
       const savedImageUrls = new Set([saved.picture, ...saved.gallery].filter(Boolean));
@@ -186,14 +246,60 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
         .filter((image) => image && !persistedImageUrls.current.has(image) && !savedImageUrls.has(image));
       persistedImageUrls.current = savedImageUrls;
       setDraft(null);
+      setFormSuccess(t(editingId === null ? "Product added successfully." : "Product updated successfully."));
       if (unusedDraftImages.length) {
         try {
           await onDeleteUnusedProductImages(unusedDraftImages);
         } catch (error) {
-          throw new Error(t("Product saved, but unused images could not be cleaned up: {error}", { error: error.message }));
+          setFormError(t("Product saved, but unused images could not be cleaned up: {error}", { error: error.message }));
         }
       }
-    });
+    } catch (error) {
+      setFormError(t(getAppointmentErrorMessage(error, "The product could not be saved. Please try again.")));
+    } finally {
+      productSubmittingRef.current = false;
+      setBusy(false);
+    }
+  };
+
+  const archiveDraftProduct = async () => {
+    if (!draft || editingId === null || productSubmittingRef.current) return;
+    const existing = products.find(product => product.id === editingId);
+    if (!existing) return;
+    const nextActive = !existing.active;
+    if (existing.active && !window.confirm(t("Archive {title}? It will be hidden from the public services list.", { title: existing.title }))) return;
+    productSubmittingRef.current = true;
+    setBusy(true);
+    setFormError("");
+    try {
+      await onUpdateProduct({ ...existing, active: nextActive });
+      setDraft(null);
+      setFormSuccess(t(nextActive ? "Product restored to the public list." : "Product archived and hidden from the public list."));
+    } catch (error) {
+      setFormError(t(getAppointmentErrorMessage(error, "The product could not be archived.")));
+    } finally {
+      productSubmittingRef.current = false;
+      setBusy(false);
+    }
+  };
+
+  const deleteDraftProduct = async () => {
+    if (!draft || editingId === null || productSubmittingRef.current) return;
+    const existing = products.find(product => product.id === editingId);
+    if (!existing || !window.confirm(t("Permanently delete {title}? This cannot be undone.", { title: existing.title }))) return;
+    productSubmittingRef.current = true;
+    setBusy(true);
+    setFormError("");
+    try {
+      await onDeleteProduct(editingId);
+      setDraft(null);
+      setFormSuccess(t("Product deleted successfully."));
+    } catch (error) {
+      setFormError(t(getAppointmentErrorMessage(error, "The product could not be deleted.")));
+    } finally {
+      productSubmittingRef.current = false;
+      setBusy(false);
+    }
   };
 
   const deleteProduct = (product) => {
@@ -243,12 +349,42 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   const visibleAppointments = appointments.filter((appointment) => {
     const query = appointmentSearch.trim().toLocaleLowerCase();
     const matchesQuery = !query
-      || appointment.customer.name.toLocaleLowerCase().includes(query)
-      || appointment.customer.whatsapp.toLocaleLowerCase().includes(query)
-      || appointment.reference.toLocaleLowerCase().includes(query);
+      || String(appointment.customer.name || "").toLocaleLowerCase().includes(query)
+      || String(appointment.customer.whatsapp || "").toLocaleLowerCase().includes(query)
+      || String(appointment.customer.email || "").toLocaleLowerCase().includes(query)
+      || String(appointment.reference || "").toLocaleLowerCase().includes(query);
     const matchesStatus = appointmentStatus === "all" || appointment.bookingStatus === appointmentStatus;
-    return matchesQuery && matchesStatus;
+    const matchesDepositStatus = appointmentDepositStatus === "all" || appointment.depositStatus === appointmentDepositStatus;
+    const matchesDate = !appointmentDate || localDateKey(appointment.appointmentAt) === appointmentDate;
+    const matchesService = appointmentService === "all" || appointment.services.some(service => service.title === appointmentService);
+    return matchesQuery && matchesStatus && matchesDepositStatus && matchesDate && matchesService;
   });
+  const selectedAppointment = appointments.find(appointment => appointment.id === selectedAppointmentId);
+  useScrollLock(Boolean(selectedAppointment));
+  useEffect(() => {
+    if (!selectedAppointment) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setSelectedAppointmentId(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedAppointment]);
+  const selectedContactNumber = selectedAppointment ? whatsappNumber(selectedAppointment.customer.whatsapp) : "";
+  const selectedWhatsAppText = selectedAppointment?.bookingStatus === "awaiting_payment"
+    ? t("Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
+      name: selectedAppointment.customer.name,
+      reference: selectedAppointment.reference,
+    })
+    : selectedAppointment && t("Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
+      name: selectedAppointment.customer.name,
+      reference: selectedAppointment.reference,
+    });
+  const dashboardStats = [
+    { label: "Pending requests", value: appointments.filter(item => ["pending_review", "awaiting_payment"].includes(item.bookingStatus)).length, tone: "pending" },
+    { label: "Approved appointments", value: appointments.filter(item => item.bookingStatus === "confirmed").length, tone: "approved" },
+    { label: "Completed appointments", value: appointments.filter(item => item.bookingStatus === "completed").length, tone: "completed" },
+    { label: "Deposits to verify", value: appointments.filter(item => item.depositStatus === "awaiting_payment").length, tone: "deposit" },
+  ];
 
   const handleAddProduct = () => {
     setSection("products");
@@ -313,6 +449,10 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
           <p className="dashboard-summary">{t("SHOP MANAGEMENT")} · {products.length} {t("Products")} · {appointments.length} {t("Appointments")} · {bookings.length} {t("Requests")}</p>
         </div>
 
+        <section className="dashboard-overview" aria-label={t("Booking overview")}>
+          {dashboardStats.map(card => <article className={`overview-card ${card.tone}`} key={card.tone}><span>{t(card.label)}</span><strong>{card.value}</strong></article>)}
+        </section>
+
         {actionError && <p className="editor-error" role="alert">{t(actionError)} <button type="button" className="text-button" onClick={onReload}>{t("Reload data")}</button></p>}
 
         <details className="account-security">
@@ -330,37 +470,50 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
         {section === "products" ? (
           <>
             <div className="dashboard-toolbar">
-              <div className="dashboard-tabs">
-                <button className={category === "haircut" ? "active" : ""} onClick={() => setCategory("haircut")}>{t("Haircuts")}</button>
-                <button className={category === "package" ? "active" : ""} onClick={() => setCategory("package")}>{t("Packages")}</button>
+              <div className="dashboard-tabs" role="group" aria-label={t("Product category")}>
+                <button type="button" aria-pressed={category === "haircut"} className={category === "haircut" ? "active" : ""} onClick={() => setCategory("haircut")}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M18 4v16M6 9h12M6 15h12" /></svg>
+                  {t("Haircuts")}
+                </button>
+                <button type="button" aria-pressed={category === "package"} className={category === "package" ? "active" : ""} onClick={() => setCategory("package")}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v12H4zM3 4h18v4H3zM12 8v12M12 4c-4-4-7 1 0 4m0-4c4-4 7 1 0 4" /></svg>
+                  {t("Packages")}
+                </button>
               </div>
+              <button type="button" className="primary-button add-product-button" disabled={busy || uploadingImage} onClick={beginAdd}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                {t("Add product")}
+              </button>
             </div>
+            {formSuccess && <p className="product-feedback success" role="status">{formSuccess}</p>}
+            {formError && !draft && <p className="product-feedback error" role="alert">{formError}</p>}
             {draft && (
-              <form id="product-editor" className="product-editor" onSubmit={saveProduct}>
-                <div className="editor-heading"><div><span className="eyebrow">{t(editingId === null ? "NEW SERVICE" : "UPDATE SERVICE")}</span><h2>{t(editingId === null ? "Add a product" : "Edit product")}</h2></div><button type="button" className="text-button" disabled={uploadingImage || busy} onClick={cancelDraft}>{t("Cancel")}</button></div>
-                <div className="editor-grid">
-                  <label className="wide-field">{t("Main image file")} {t(editingId === null ? "(required)" : "(optional replacement)")}<input type="file" accept="image/jpeg,image/png,image/webp" required={editingId === null && !draft.picture} disabled={uploadingImage} onChange={(event) => uploadImage(event, "picture")} /></label>
-                  {draft.picture && <div className="image-preview-field"><img className="product-image-preview" src={draft.picture} alt={t("Main product preview")} /><button type="button" className="text-button" disabled={uploadingImage || busy} onClick={() => removeDraftImage("picture")}>{t("Remove main image")}</button></div>}
-                  <label>{t("Title")}<input required maxLength={30} value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} placeholder={t("Classic Haircut")} /></label>
-                  <label>{t("Category")}<select value={draft.category} onChange={(event) => updateDraft("category", event.target.value)}><option value="haircut">{t("Haircut")}</option><option value="package">{t("Package")}</option></select></label>
-                  <label>{t("Duration in minutes (optional)")}<input type="number" min="1" step="1" value={draft.duration} onChange={(event) => updateDraft("duration", event.target.value)} placeholder="30" /></label>
-                  <label>{t("Description")}<textarea required rows="3" value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} /></label>
-                  <label>{t("Price (EGP)")}<input required type="number" min="1" step="1" value={draft.price} onChange={(event) => updateDraft("price", event.target.value)} /></label>
-                  <label>{t("Old price (optional)")}<input type="number" min="1" step="1" value={draft.oldPrice} onChange={(event) => updateDraft("oldPrice", event.target.value)} /></label>
-                  <div className="wide-field gallery-fields"><span>{t("Additional images (optional, up to 4)")}</span>{[0, 1, 2, 3].map((index) => <div className="gallery-image-field" key={index}><label>{t("Image {number}", { number: index + 2 })}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadingImage} onChange={(event) => uploadImage(event, "gallery", index)} /></label>{draft.gallery[index] && <><img className="product-image-preview" src={draft.gallery[index]} alt={t("Product image {number} preview", { number: index + 2 })} /><button type="button" className="text-button" disabled={uploadingImage || busy} onClick={() => removeDraftImage("gallery", index)}>{t("Remove image {number}", { number: index + 2 })}</button></>}</div>)}</div>
-                </div>
-                {uploadingImage && <p className="editor-hint" role="status">{t("Uploading image…")}</p>}
-                {formError && <p className="editor-error" role="alert">{t(formError)}</p>}
-                <button className="primary-button" type="submit" disabled={busy || uploadingImage}>{busy ? t("Saving…") : t("Save product")}</button>
-              </form>
+              <ProductEditor
+                draft={draft}
+                editing={editingId !== null}
+                error={formError}
+                busy={busy}
+                uploading={uploadingImage}
+                progress={uploadProgress}
+                onChange={updateDraft}
+                onUpload={uploadImage}
+                onRemoveImage={removeDraftImage}
+                onSave={saveProduct}
+                onCancel={cancelDraft}
+                onArchive={archiveDraftProduct}
+                onDelete={deleteDraftProduct}
+                t={t}
+              />
             )}
             <div className="managed-products">
               {categoryProducts.length === 0 && <div className="empty-state">{t(category === "haircut" ? "No haircuts yet. Add your first service above." : "No packages yet. Add your first service above.")}</div>}
               {categoryProducts.map((product, index) => (
                 <article className={`managed-product ${product.active ? "" : "is-hidden"}`} key={product.id}>
-                  {product.picture && <img src={product.picture} alt="" />}
+                  {product.picture ? <img src={product.picture} alt="" /> : <span className="managed-product-thumb-empty" aria-hidden="true">H.</span>}
                   <div className="managed-product-info"><div className="managed-title"><h3>{product.title}</h3><span className={product.active ? "status-pill visible" : "status-pill"}>{t(product.active ? "Visible" : "Hidden")}</span></div><p>{product.price} {t("EGP")}{product.duration ? ` · ${product.duration} ${t("min")}` : ""}</p></div>
-                  <div className="managed-actions"><button title={t("Move up")} aria-label={t("Move {title} up", { title: product.title })} disabled={index === 0 || busy} onClick={() => moveProduct(index, -1)}>↑</button><button title={t("Move down")} aria-label={t("Move {title} down", { title: product.title })} disabled={index === categoryProducts.length - 1 || busy} onClick={() => moveProduct(index, 1)}>↓</button><button disabled={busy} onClick={() => beginEdit(product)}>{t("Edit")}</button><button disabled={busy} onClick={() => toggleProduct(product)}>{t(product.active ? "Hide" : "Show")}</button><button className="danger-action" disabled={busy} onClick={() => deleteProduct(product)}>{t("Delete")}</button></div>
+
+                  <div className="managed-product-meta"><span>{t(product.category === "haircut" ? "Haircut Service" : "Package")}</span><span>{t("Order {number}", { number: product.sortOrder ?? index })}</span><span>{t("{number} gallery images", { number: product.gallery?.length || 0 })}</span></div>
+                  <div className="managed-actions"><button title={t("Move up")} aria-label={t("Move {title} up", { title: product.title })} disabled={index === 0 || busy} onClick={() => moveProduct(index, -1)}>↑</button><button title={t("Move down")} aria-label={t("Move {title} down", { title: product.title })} disabled={index === categoryProducts.length - 1 || busy} onClick={() => moveProduct(index, 1)}>↓</button><button className="edit-product-button" disabled={busy} onClick={() => beginEdit(product)}>{t("Edit product")}</button><button disabled={busy} onClick={() => toggleProduct(product)}>{t(product.active ? "Hide" : "Show")}</button><button className="danger-action" disabled={busy} onClick={() => deleteProduct(product)}>{t("Delete")}</button></div>
                 </article>
               ))}
             </div>
@@ -369,18 +522,35 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
           <section className="appointment-management" aria-labelledby="appointments-title">
             <div className="appointment-list-heading">
               <div><span className="eyebrow">{t("BOOKING MANAGEMENT")}</span><h2 id="appointments-title">{t("Appointments")}</h2></div>
-              <span>{visibleAppointments.length} / {appointments.length}</span>
+              <span className="appointment-result-count">{t("Showing {visible} of {total} appointments", { visible: visibleAppointments.length, total: appointments.length })}</span>
             </div>
             <div className="appointment-filters">
               <label>{t("Search appointments")}
-                <input type="search" value={appointmentSearch} onChange={(event) => setAppointmentSearch(event.target.value)} placeholder={t("Name, phone, or booking reference")} />
+                <input type="search" value={appointmentSearch} onChange={(event) => setAppointmentSearch(event.target.value)} placeholder={t("Name, phone, email, or booking reference")} />
               </label>
               <label>{t("Booking status")}
                 <select value={appointmentStatus} onChange={(event) => setAppointmentStatus(event.target.value)}>
                   <option value="all">{t("All statuses")}</option>
-                      {["pending_review", "awaiting_payment", "confirmed", "completed", "cancelled", "rejected"].map((status) => (
-                        <option key={status} value={status}>{t(bookingStatusLabel(status))}</option>
+                  {["pending_review", "awaiting_payment", "confirmed", "completed", "cancelled", "rejected"].map((status) => (
+                    <option key={status} value={status}>{t(bookingStatusLabel(status))}</option>
                   ))}
+                </select>
+              </label>
+              <label>{t("Deposit status")}
+                <select value={appointmentDepositStatus} onChange={(event) => setAppointmentDepositStatus(event.target.value)}>
+                  <option value="all">{t("All deposit statuses")}</option>
+                  {["not_requested", "awaiting_payment", "payment_verified", "refunded"].map((status) => (
+                    <option key={status} value={status}>{t(depositStatusLabel(status))}</option>
+                  ))}
+                </select>
+              </label>
+              <label>{t("Appointment date")}
+                <input type="date" value={appointmentDate} onChange={event => setAppointmentDate(event.target.value)} />
+              </label>
+              <label>{t("Service")}
+                <select value={appointmentService} onChange={event => setAppointmentService(event.target.value)}>
+                  <option value="all">{t("All services")}</option>
+                  {[...new Set(appointments.flatMap(appointment => appointment.services.map(service => service.title)))].sort().map(service => <option key={service} value={service}>{service}</option>)}
                 </select>
               </label>
             </div>
@@ -391,82 +561,57 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
             ) : visibleAppointments.length === 0 ? (
               <div className="empty-state">{t("No appointments match these filters.")}</div>
             ) : (
-              <div className="appointment-list">
+              <div className="appointment-table-wrap">
+                <table className="appointment-table">
+                  <thead><tr>
+                    <th scope="col">{t("Customer")}</th>
+                    <th scope="col">{t("Service")}</th>
+                    <th scope="col">{t("Appointment date")}</th>
+                    <th scope="col">{t("Total")}</th>
+                    <th scope="col">{t("Booking status")}</th>
+                    <th scope="col">{t("Actions")}</th>
+                  </tr></thead>
+                  <tbody>
                 {visibleAppointments.map((appointment) => {
-                  const contactNumber = whatsappNumber(appointment.customer.whatsapp);
-                  const whatsappText = appointment.bookingStatus === "awaiting_payment"
-                    ? t("Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
-                      name: appointment.customer.name,
-                      reference: appointment.reference,
-                    })
-                    : t("Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
-                      name: appointment.customer.name,
-                      reference: appointment.reference,
-                    });
-                  const message = encodeURIComponent(whatsappText);
+                  const primaryAppointmentAction = appointment.bookingStatus === "pending_review"
+                    ? <button type="button" className="appointment-primary-action" disabled={busy} onClick={() => updateAppointment(appointment, {
+                      bookingStatus: "awaiting_payment",
+                      ...(appointment.depositStatus === "payment_verified" ? {} : { depositStatus: "awaiting_payment" }),
+                    })}>{t("Accept & request deposit")}</button>
+                    : appointment.bookingStatus === "awaiting_payment"
+                      ? <button type="button" className="appointment-primary-action" disabled={busy || appointment.depositStatus !== "payment_verified"} onClick={() => updateAppointment(appointment, { bookingStatus: "confirmed" })}>{t("Confirm appointment")}</button>
+                      : appointment.bookingStatus === "confirmed"
+                        ? <button type="button" className="appointment-primary-action" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "completed" })}>{t("Mark completed")}</button>
+                        : null;
                   return (
-                    <article className="appointment-card" key={appointment.id}>
-                      <div className="appointment-card-top">
-                        <div>
-                          <span className="eyebrow">{appointment.reference}</span>
-                          <h3>{appointment.customer.name}</h3>
-                          <p>{t("Request received")}: {new Date(appointment.createdAt).toLocaleString(language === "ar" ? "ar-EG" : "en")}</p>
+                    <tr key={appointment.id}>
+                      <td data-label={t("Customer")}>
+                        <div className="appointment-table-customer"><strong>{appointment.customer.name}</strong><span className="appointment-reference">{appointment.reference}</span><span dir="ltr">{appointment.customer.whatsapp}</span>{appointment.customer.email && <small dir="ltr">{appointment.customer.email}</small>}</div>
+                      </td>
+                      <td data-label={t("Service")}>
+                        <div className="appointment-table-service"><strong>{appointment.services[0]?.title || "—"}</strong>{appointment.services.length > 1 && <span>{t("{number} more services", { number: appointment.services.length - 1 })}</span>}<small>{t("Duration")}: {formatAppointmentPrice(appointment.duration, language)} {t("min")}</small></div>
+                      </td>
+                      <td data-label={t("Appointment date")}>
+                        <div className="appointment-table-date"><strong>{formatAppointmentDate(appointment.appointmentAt, language) || t("Not scheduled")}</strong>{appointment.createdAt && <small>{t("Request received")}: {formatAppointmentDate(appointment.createdAt, language)}</small>}</div>
+                      </td>
+                      <td data-label={t("Total")}>
+                        <div className="appointment-table-price"><strong>{formatAppointmentPrice(appointment.total, language)} {t("EGP")}</strong><small>{t("Deposit")}: {formatAppointmentPrice(appointment.deposit, language)} {t("EGP")}</small></div>
+                      </td>
+                      <td data-label={t("Booking status")}>
+                        <div className="appointment-table-status"><span className={`appointment-status status-${appointment.bookingStatus}`}>{t(bookingStatusLabel(appointment.bookingStatus))}</span><span className={`deposit-status-badge deposit-${appointment.depositStatus}`}>{t(depositStatusLabel(appointment.depositStatus))}</span></div>
+                      </td>
+                      <td data-label={t("Actions")}>
+                        <div className="appointment-table-actions">
+                          {primaryAppointmentAction}
+                          {appointment.bookingStatus === "awaiting_payment" && appointment.depositStatus !== "payment_verified" && <small className="appointment-payment-hint">{t("Verify the deposit before confirming.")}</small>}
+                          <button className="appointment-view-details" type="button" onClick={() => setSelectedAppointmentId(appointment.id)}>{t("View request details")}</button>
                         </div>
-                        <span className={`appointment-status status-${appointment.bookingStatus}`}>{t(bookingStatusLabel(appointment.bookingStatus))}</span>
-                      </div>
-                      <div className="appointment-services">
-                        {appointment.services.map((service) => (
-                          <div key={service.productId}><span>{service.title}</span><strong>{service.price} {t("EGP")}</strong></div>
-                        ))}
-                      </div>
-                      <div className="appointment-card-meta">
-                        <span>{t("Duration")}: {appointment.duration} {t("min")}</span>
-                        <strong>{t("Total")}: {appointment.total} {t("EGP")}</strong>
-                        <span>{t("Deposit")}: {appointment.deposit} {t("EGP")} · {t(depositStatusLabel(appointment.depositStatus))}</span>
-                      </div>
-                      <details className="appointment-details">
-                        <summary>{t("View appointment details")}</summary>
-                        <dl>
-                          <div><dt>{t("Phone / WhatsApp")}</dt><dd>{appointment.customer.whatsapp}</dd></div>
-                          {appointment.customer.email && <div><dt>{t("Email")}</dt><dd>{appointment.customer.email}</dd></div>}
-                          <div><dt>{t("Notes")}</dt><dd>{appointment.notes || t("No notes provided.")}</dd></div>
-                        </dl>
-                      </details>
-                      <div className="appointment-actions">
-                        {contactNumber && <a href={`https://wa.me/${contactNumber}?text=${message}`} target="_blank" rel="noreferrer">{t("Contact on WhatsApp")}</a>}
-                        {appointment.bookingStatus === "pending_review" && <>
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => updateAppointment(appointment, {
-                              bookingStatus: "awaiting_payment",
-                              ...(appointment.depositStatus === "payment_verified" ? {} : { depositStatus: "awaiting_payment" }),
-                            })}
-                          >{t("Accept & request deposit")}</button>
-                          <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "rejected" })}>{t("Reject")}</button>
-                        </>}
-                        {appointment.bookingStatus === "awaiting_payment" && <>
-                          <button type="button" disabled={busy || appointment.depositStatus !== "payment_verified"} onClick={() => updateAppointment(appointment, { bookingStatus: "confirmed" })}>{t("Confirm appointment")}</button>
-                          {appointment.depositStatus !== "payment_verified" && <span className="appointment-payment-hint">{t("Verify the deposit before confirming.")}</span>}
-                          <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "rejected" })}>{t("Reject")}</button>
-                          <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "cancelled" })}>{t("Cancel appointment")}</button>
-                        </>}
-                        {appointment.bookingStatus === "confirmed" && <>
-                          <button type="button" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "completed" })}>{t("Mark completed")}</button>
-                          <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(appointment, { bookingStatus: "cancelled" })}>{t("Cancel appointment")}</button>
-                        </>}
-                        <label className="deposit-status-control">{t("Deposit status")}
-                          <select disabled={busy} value={appointment.depositStatus} onChange={(event) => updateAppointment(appointment, { depositStatus: event.target.value })}>
-                            <option value="not_requested" disabled={appointment.depositStatus !== "not_requested"}>{t("Not Requested")}</option>
-                            <option value="awaiting_payment" disabled={appointment.depositStatus !== "awaiting_payment" && appointment.bookingStatus !== "awaiting_payment"}>{t("Awaiting Payment")}</option>
-                            <option value="payment_verified" disabled={appointment.depositStatus !== "awaiting_payment" && appointment.depositStatus !== "payment_verified"}>{t("Payment Verified")}</option>
-                            <option value="refunded" disabled={appointment.depositStatus !== "refunded" && (appointment.depositStatus !== "payment_verified" || !["cancelled", "rejected"].includes(appointment.bookingStatus))}>{t("Refunded")}</option>
-                          </select>
-                        </label>
-                      </div>
-                    </article>
+                      </td>
+                    </tr>
                   );
                 })}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>
@@ -487,6 +632,55 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
           <ContactSettings contactSettings={contactSettings} onSave={onSaveContactSettings} />
         )}
       </section>
+      {selectedAppointment && (
+        <div className="appointment-dialog-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setSelectedAppointmentId(null)}>
+          <section className="appointment-dialog" role="dialog" aria-modal="true" aria-labelledby="appointment-dialog-title">
+            <button type="button" className="appointment-dialog-close" onClick={() => setSelectedAppointmentId(null)} aria-label={t("Close details")}>×</button>
+            <span className="eyebrow">{t("REQUEST DETAILS")}</span>
+            <h2 id="appointment-dialog-title">{selectedAppointment.customer.name}</h2>
+            <p className="appointment-dialog-reference">{selectedAppointment.reference}</p>
+            {selectedContactNumber && <a className="appointment-contact-link" href={`https://wa.me/${selectedContactNumber}?text=${encodeURIComponent(selectedWhatsAppText || "")}`} target="_blank" rel="noreferrer">{t("Contact on WhatsApp")}</a>}
+            {appointmentMessage && <p className="appointment-success" role="status">{t(appointmentMessage)}</p>}
+            {actionError && <p className="editor-error" role="alert">{t(actionError)}</p>}
+            <dl>
+              <div><dt>{t("Phone / WhatsApp")}</dt><dd>{selectedAppointment.customer.whatsapp}</dd></div>
+              {selectedAppointment.customer.email && <div><dt>{t("Email")}</dt><dd>{selectedAppointment.customer.email}</dd></div>}
+              <div><dt>{t("Appointment date")}</dt><dd>{formatAppointmentDate(selectedAppointment.appointmentAt, language) || t("Not scheduled")}</dd></div>
+              {selectedAppointment.createdAt && <div><dt>{t("Request received")}</dt><dd>{formatAppointmentDate(selectedAppointment.createdAt, language)}</dd></div>}
+              <div><dt>{t("Appointment status")}</dt><dd>{t(bookingStatusLabel(selectedAppointment.bookingStatus))}</dd></div>
+              <div><dt>{t("Deposit status")}</dt><dd>{t(depositStatusLabel(selectedAppointment.depositStatus))}</dd></div>
+              <div><dt>{t("Duration")}</dt><dd>{formatAppointmentPrice(selectedAppointment.duration, language)} {t("min")}</dd></div>
+              <div><dt>{t("Notes")}</dt><dd>{selectedAppointment.notes || t("No notes provided.")}</dd></div>
+            </dl>
+            <div className="appointment-dialog-services">{selectedAppointment.services.map(service => <div key={service.productId}><span>{service.title}</span><strong>{formatAppointmentPrice(service.price, language)} {t("EGP")}</strong></div>)}</div>
+            <div className="appointment-dialog-totals"><span>{t("Total")} <strong>{formatAppointmentPrice(selectedAppointment.total, language)} {t("EGP")}</strong></span><span>{t("Deposit")} <strong>{formatAppointmentPrice(selectedAppointment.deposit, language)} {t("EGP")}</strong></span></div>
+            <div className="appointment-dialog-actions">
+              {selectedAppointment.bookingStatus === "pending_review" && <>
+                <button type="button" className="status-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "awaiting_payment", ...(selectedAppointment.depositStatus === "payment_verified" ? {} : { depositStatus: "awaiting_payment" }) })}>{t("Accept & request deposit")}</button>
+                <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "rejected" })}>{t("Reject")}</button>
+              </>}
+              {selectedAppointment.bookingStatus === "awaiting_payment" && <>
+                <button type="button" className="status-action" disabled={busy || selectedAppointment.depositStatus !== "payment_verified"} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "confirmed" })}>{t("Confirm appointment")}</button>
+                {selectedAppointment.depositStatus !== "payment_verified" && <span className="appointment-payment-hint">{t("Verify the deposit before confirming.")}</span>}
+                <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "rejected" })}>{t("Reject")}</button>
+                <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "cancelled" })}>{t("Cancel appointment")}</button>
+              </>}
+              {selectedAppointment.bookingStatus === "confirmed" && <>
+                <button type="button" className="status-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "completed" })}>{t("Mark completed")}</button>
+                <button type="button" className="danger-action" disabled={busy} onClick={() => updateAppointment(selectedAppointment, { bookingStatus: "cancelled" })}>{t("Cancel appointment")}</button>
+              </>}
+              <label className="deposit-status-control">{t("Deposit status")}
+                <select disabled={busy} value={selectedAppointment.depositStatus} onChange={(event) => updateAppointment(selectedAppointment, { depositStatus: event.target.value })}>
+                  <option value="not_requested" disabled={selectedAppointment.depositStatus !== "not_requested"}>{t("Not Requested")}</option>
+                  <option value="awaiting_payment" disabled={selectedAppointment.depositStatus !== "awaiting_payment" && selectedAppointment.bookingStatus !== "awaiting_payment"}>{t("Awaiting Payment")}</option>
+                  <option value="payment_verified" disabled={selectedAppointment.depositStatus !== "awaiting_payment" && selectedAppointment.depositStatus !== "payment_verified"}>{t("Payment Verified")}</option>
+                  <option value="refunded" disabled={selectedAppointment.depositStatus !== "refunded" && (selectedAppointment.depositStatus !== "payment_verified" || !["cancelled", "rejected"].includes(selectedAppointment.bookingStatus))}>{t("Refunded")}</option>
+                </select>
+              </label>
+            </div>
+          </section>
+        </div>
+      )}
       </main>
     </>
   );

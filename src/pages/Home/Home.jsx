@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- Existing app components use JavaScript props without PropTypes. */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import CategoryFilter from "../../components/CategoryFilter/CategoryFilter";
@@ -6,6 +7,7 @@ import ProductModal from "../../components/ProductModal/ProductModal";
 import SelectionSummary from "../../components/SelectionSummary/SelectionSummary";
 import CustomerForm from "../../components/CustomerForm/CustomerForm";
 import NavigationSidebar from "../../components/NavigationSidebar/NavigationSidebar";
+import OwnerLoginModal from "../../components/OwnerLoginModal/OwnerLoginModal";
 import { getAppointmentConfirmation, getAppointmentErrorMessage } from "../../features/auth/bookings/bookingService";
 import { useLanguage } from "../../lib/i18n";
 import barberImage from "../../assets/barberimg.png";
@@ -28,12 +30,14 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
-function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreated, onOpenOwnerLogin, loginOpen }) {
+function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreated, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, onOwnerLogin }) {
   const { language, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("haircut");
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState(() => {
+    try { return JSON.parse(window.sessionStorage.getItem("hadad-selected-products") || "[]"); } catch { return []; }
+  });
   const [openedProduct, setOpenedProduct] = useState(null);
-  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [showCustomerForm, setShowCustomerForm] = useState(() => window.sessionStorage.getItem("hadad-checkout-open") === "true");
   const [bookingComplete, setBookingComplete] = useState(false);
   const [submittedBooking, setSubmittedBooking] = useState(null);
   const [confirmationLoading, setConfirmationLoading] = useState(false);
@@ -42,6 +46,10 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
   const ownerClickRef = useRef({ count: 0, lastClick: 0, timer: null });
 
   useEffect(() => () => clearTimeout(ownerClickRef.current.timer), []);
+  useEffect(() => {
+    try { window.sessionStorage.setItem("hadad-selected-products", JSON.stringify(selectedProducts)); }
+    catch { /* Checkout selection still works for this page view. */ }
+  }, [selectedProducts]);
 
   const restoreConfirmation = useCallback(async () => {
     const reference = new URLSearchParams(window.location.search).get("booking");
@@ -49,7 +57,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
     setConfirmationLoading(true);
     setConfirmationError("");
     try {
-      const token = window.localStorage.getItem(`hadad-confirmation-${reference}`);
+      const token = window.sessionStorage.getItem(`hadad-confirmation-${reference}`);
       if (!token) {
         throw new Error("This confirmation could not be verified in this browser. Return to the shop or contact HADAD with your booking reference.");
       }
@@ -131,6 +139,8 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
 
   const handleContinue = () => {
     setShowCustomerForm(true);
+    try { window.sessionStorage.setItem("hadad-checkout-open", "true"); }
+    catch { /* Continue to sign-in; the selection remains in component state. */ }
     setTimeout(() => {
       document.getElementById("customer-form")?.scrollIntoView({ behavior: "smooth" });
     }, 0);
@@ -143,8 +153,9 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
     };
     const savedAppointment = await onBookingCreated(request);
     try {
-      window.localStorage.setItem(`hadad-confirmation-${savedAppointment.reference}`, booking.confirmationToken);
-      window.localStorage.removeItem("hadad-pending-appointment");
+      window.sessionStorage.setItem(`hadad-confirmation-${savedAppointment.reference}`, booking.confirmationToken);
+      window.sessionStorage.removeItem("hadad-pending-appointment");
+      window.sessionStorage.removeItem("hadad-checkout-open");
     } catch {
       // The server-confirmed result can still be shown for this page view.
     }
@@ -202,6 +213,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
           onToggleTheme={onToggleTheme}
           showThemeToggle={!loginOpen}
         />
+        <OwnerLoginModal isOpen={loginOpen} onClose={onCloseOwnerLogin} onLogin={onOwnerLogin} />
         <div className="public-main">
         <main className="success-screen">
         <div className="success-content">
@@ -237,6 +249,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
         onToggleTheme={onToggleTheme}
         showThemeToggle={!loginOpen}
       />
+      <OwnerLoginModal isOpen={loginOpen} onClose={onCloseOwnerLogin} onLogin={onOwnerLogin} />
       <div className="public-main">
       <main>
       <section className="hero" id="top">
@@ -327,7 +340,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
 
       <footer className="site-footer">
         <a className="brand-mark" href="#top">HADAD<span>.</span></a>
-        <span>{t("© 2026 HADAD · Independently owned and operated by Ziad")}</span>
+        <span dir="ltr">© 2026 HADAD · Independently owned and operated by Ziad</span>
       </footer>
       </main>
       </div>

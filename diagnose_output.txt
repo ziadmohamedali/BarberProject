@@ -1,0 +1,12 @@
+﻿URL: https://hcbfdtvicoyneibhcznh.supabase.co
+PUBLIC KEY CONFIGURED: true
+KEY_LOOKS_LIKE: new publishable key
+======================================================================
+
+### products (anon read)
+  GET /rest/v1/products?select=id,name,price,is_active&limit=1 -> HTTP 200
+  OK (array len 1)
+
+### hadad_contact_settings (anon read)
+  GET /rest/v1/hadad_contact_settings?select=id&limit=1 -> HTTP 200
+  OK (array len 1)

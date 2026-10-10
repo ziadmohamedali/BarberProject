@@ -1,7 +1,21 @@
 const environment = import.meta.env || {};
 const configuredUrl = environment.VITE_SUPABASE_URL?.trim().replace(/\/$/, "");
 const supabaseAnonKey = environment.VITE_SUPABASE_ANON_KEY?.trim();
-const storageKey = "hadad-supabase-session";
+const sessionStorageKey = "hadad-owner-session";
+let inMemorySession = null;
+
+try {
+  window.localStorage.removeItem("hadad-supabase-session");
+  window.localStorage.removeItem("hadad-pending-appointment");
+  window.localStorage.removeItem("hadad-bookings-v1");
+  window.localStorage.removeItem("hadad-products-v1");
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+    if (key?.startsWith("hadad-confirmation-")) window.localStorage.removeItem(key);
+  }
+} catch {
+  // Keep the app usable when browser storage is restricted.
+}
 
 function isValidSupabaseUrl(value) {
   try {
@@ -16,30 +30,30 @@ const supabaseUrl = isValidSupabaseUrl(configuredUrl) ? configuredUrl : "";
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 function readSession() {
-  try {
-    return JSON.parse(window.localStorage.getItem(storageKey) || "null");
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(window.sessionStorage.getItem(sessionStorageKey) || "null"); }
+  catch { return inMemorySession; }
 }
 
 function saveSession(session) {
-  if (session) window.localStorage.setItem(storageKey, JSON.stringify(session));
-  else window.localStorage.removeItem(storageKey);
+  try {
+    if (session) window.sessionStorage.setItem(sessionStorageKey, JSON.stringify(session));
+    else window.sessionStorage.removeItem(sessionStorageKey);
+  } catch { /* Auth remains available in memory only if tab storage is unavailable. */ }
+  inMemorySession = session || null;
 }
 
-async function request(path, { method = "GET", body, token, headers = {} } = {}) {
+async function request(path, { method = "GET", body, token, publicOnly = false, headers = {} } = {}) {
   if (!isSupabaseConfigured) {
     throw new Error("Supabase is not configured. Set a valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local, then reload the app.");
   }
-  const storedSession = token ? null : readSession();
+  const storedSession = token || publicOnly ? null : readSession();
   const isBinaryBody = typeof Blob !== "undefined" && body instanceof Blob;
-  let activeToken = token || storedSession?.access_token || supabaseAnonKey;
+  let activeToken = token || storedSession?.access_token || "";
   const send = () => fetch(`${supabaseUrl}${path}`, {
     method,
     headers: {
       apikey: supabaseAnonKey,
-      Authorization: `Bearer ${activeToken}`,
+      ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
       ...(body === undefined ? {} : isBinaryBody
         ? { "Content-Type": body.type || "application/octet-stream" }
         : { "Content-Type": "application/json", Prefer: "return=representation" }),
@@ -86,7 +100,7 @@ export const authApi = {
     const session = await request("/auth/v1/token?grant_type=password", {
       method: "POST",
       body: { email, password },
-      token: supabaseAnonKey,
+      publicOnly: true,
     });
     session.expires_at = Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600);
     saveSession(session);
@@ -96,7 +110,7 @@ export const authApi = {
     const session = await request("/auth/v1/token?grant_type=refresh_token", {
       method: "POST",
       body: { refresh_token: refreshToken },
-      token: supabaseAnonKey,
+      publicOnly: true,
     });
     session.expires_at = Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600);
     saveSession(session);
@@ -160,14 +174,46 @@ export async function validateProductImageFile(file) {
   return extension;
 }
 
-export async function uploadStorageImage(file) {
+export async function uploadStorageImage(file, onProgress = () => {}) {
   const extension = await validateProductImageFile(file);
   const objectPath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-  await request(`/storage/v1/object/product-images/${objectPath}`, {
-    method: "POST",
-    body: file,
-    headers: { "x-upsert": "false" },
+  const uploadWithSession = (session) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${supabaseUrl}/storage/v1/object/product-images/${objectPath}`);
+    xhr.setRequestHeader("apikey", supabaseAnonKey);
+    if (session?.access_token) xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
+    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+    xhr.setRequestHeader("x-upsert", "false");
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
+    };
+    xhr.onerror = () => reject(new Error("Image upload failed. Check your internet connection and try again."));
+    xhr.onabort = () => reject(new Error("Image upload was cancelled."));
+    xhr.onload = () => {
+      let result = null;
+      try { result = JSON.parse(xhr.responseText); } catch { /* Supabase can return an empty response. */ }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        const error = new Error(result?.message || result?.error || `Image upload failed (${xhr.status}).`);
+        error.status = xhr.status;
+        reject(error);
+        return;
+      }
+      onProgress(100);
+      resolve();
+    };
+    xhr.send(file);
   });
+  const session = await authApi.getSession();
+  try {
+    await uploadWithSession(session);
+  } catch (error) {
+    if (error.status === 401 && session?.refresh_token) {
+      const refreshed = await authApi.refreshSession(session.refresh_token);
+      await uploadWithSession(refreshed);
+    } else {
+      throw error;
+    }
+  }
   return `${supabaseUrl}/storage/v1/object/public/product-images/${objectPath}`;
 }
 

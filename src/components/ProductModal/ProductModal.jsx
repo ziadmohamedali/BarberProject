@@ -1,5 +1,7 @@
+/* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../lib/i18n";
+import useScrollLock from "../../hooks/useScrollLock";
 import "./ProductModal.css";
 
 function ProductModal({
@@ -13,9 +15,20 @@ function ProductModal({
   const initialImage = product?.picture || product?.gallery?.[0] || "";
   const [activeImage, setActiveImage] = useState(initialImage);
 
+  useScrollLock(Boolean(product));
+
   useEffect(() => {
     setActiveImage(initialImage);
   }, [product?.id, initialImage]);
+
+  useEffect(() => {
+    if (!product) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [product, onClose]);
 
   if (!product) return null;
 
@@ -39,7 +52,7 @@ function ProductModal({
         aria-labelledby="product-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <button className="close-button" onClick={onClose}>
+        <button className="close-button" type="button" aria-label={t("Close details")} onClick={onClose}>
           ×
         </button>
 

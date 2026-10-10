@@ -1,5 +1,7 @@
+/* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../lib/i18n";
+import useScrollLock from "../../hooks/useScrollLock";
 import "./OwnerLoginModal.css";
 
 function OwnerLoginModal({ isOpen, onClose, onLogin }) {
@@ -8,6 +10,8 @@ function OwnerLoginModal({ isOpen, onClose, onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useScrollLock(isOpen);
 
   useEffect(() => {
     if (!isOpen) return undefined;

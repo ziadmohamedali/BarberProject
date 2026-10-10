@@ -437,3 +437,103 @@
     padding-bottom: 24px;
   }
 }
+
+/* Public shop polish: consistent service, contact, and footer rhythm. */
+
+.contact-card a:focus-visible {
+  outline-offset: 4px;
+}
+
+.products-section {
+  width: min(1280px, calc(100% - 64px));
+  margin-block: 76px 108px;
+  padding-block: 54px 0;
+  border-block-start: 1px solid var(--line);
+}
+
+.section-heading {
+  margin-block-end: 38px;
+}
+
+.section-heading span {
+  letter-spacing: 1.7px;
+}
+
+.section-heading h2 {
+  margin-block-start: 13px;
+  font-size: clamp(34px, 4.6vw, 58px);
+  letter-spacing: -.035em;
+}
+
+[dir="rtl"] .section-heading h2 {
+  letter-spacing: 0;
+}
+
+.contact-section {
+  width: min(1080px, calc(100% - 64px));
+  padding-block: 54px 0;
+  border-block-start: 1px solid var(--line);
+}
+
+.contact-card {
+  border-radius: 14px;
+  transition: transform .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+}
+
+.site-footer {
+  min-height: 96px;
+  border-block-start: 1px solid var(--line);
+}
+
+.site-footer > span {
+  line-height: 1.6;
+  unicode-bidi: isolate;
+  text-align: end;
+}
+
+@media (max-width: 900px) {
+  .products-section,
+  .contact-section {
+    width: min(720px, calc(100% - 48px));
+  }
+}
+
+@media (max-width: 600px) {
+  .products-section,
+  .contact-section {
+    width: calc(100% - 36px);
+  }
+
+  .products-section {
+    margin-block: 52px 68px;
+    padding-block-start: 38px;
+  }
+
+  .section-heading {
+    margin-block-end: 26px;
+  }
+
+  .site-footer {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .site-footer > span {
+    flex-basis: 100%;
+    text-align: center;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-card {
+    transition: none;
+  }
+}
+
+.account-shortcut{position:fixed;z-index:30;inset-block-start:88px;inset-inline-end:5%;}.account-shortcut button{padding:9px 14px;border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);cursor:pointer}@media(max-width:760px){.account-shortcut{inset-block-start:14px;inset-inline-end:66px}}

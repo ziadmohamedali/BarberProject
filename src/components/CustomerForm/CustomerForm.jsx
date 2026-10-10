@@ -7,13 +7,13 @@ import "./CustomerForm.css";
 const PENDING_APPOINTMENT_KEY = "hadad-pending-appointment";
 
 function makeRequestCredentials(signature) {
-  const storedRequest = window.localStorage.getItem(PENDING_APPOINTMENT_KEY);
+  const storedRequest = window.sessionStorage.getItem(PENDING_APPOINTMENT_KEY);
   let previous = null;
   if (storedRequest) {
     try {
       previous = JSON.parse(storedRequest);
     } catch {
-      window.localStorage.removeItem(PENDING_APPOINTMENT_KEY);
+      window.sessionStorage.removeItem(PENDING_APPOINTMENT_KEY);
     }
   }
   if (
@@ -29,7 +29,7 @@ function makeRequestCredentials(signature) {
     idempotencyKey: window.crypto.randomUUID(),
     confirmationToken: [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join(""),
   };
-  window.localStorage.setItem(PENDING_APPOINTMENT_KEY, JSON.stringify(request));
+  window.sessionStorage.setItem(PENDING_APPOINTMENT_KEY, JSON.stringify(request));
   return request;
 }
 

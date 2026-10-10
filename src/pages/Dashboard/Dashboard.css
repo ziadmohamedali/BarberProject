@@ -732,3 +732,1003 @@
     font-size: 23px;
   }
 }
+.dashboard-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 30px}.overview-card{display:grid;gap:13px;padding:20px 22px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 10px 30px rgba(0,0,0,.035)}.overview-card span{color:var(--muted);font-size:12px;font-weight:600}.overview-card strong{font:600 34px/1 'Inter','Noto Sans Arabic',sans-serif;color:var(--ink)}.overview-card.pending{border-top:3px solid #d6a63d}.overview-card.approved{border-top:3px solid #56a486}.overview-card.completed{border-top:3px solid #8394b2}.overview-card.deposit{border-top:3px solid #c87a63}.appointment-filters{grid-template-columns:repeat(4,minmax(0,1fr))}.appointment-filters label{min-width:0}.appointment-view-details{padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit;font-size:12px}.appointment-view-details:hover{border-color:var(--accent);color:var(--accent)}.appointment-dialog-backdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:rgba(8,11,12,.68)}.appointment-dialog{position:relative;width:min(620px,100%);max-height:min(85vh,800px);overflow:auto;padding:30px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);box-shadow:0 26px 90px rgba(0,0,0,.35)}.appointment-dialog h2{margin:8px 0 2px;font:600 30px/1.2 'Inter','Noto Sans Arabic',sans-serif}.appointment-dialog-reference{margin:0 0 20px;color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.08em}.appointment-dialog-close{position:absolute;inset-block-start:14px;inset-inline-end:14px;width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:var(--paper);color:var(--ink);font-size:22px;cursor:pointer}.appointment-dialog dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}.appointment-dialog dl>div{padding:12px;border-radius:8px;background:var(--paper)}.appointment-dialog dt{margin-bottom:5px;color:var(--muted);font-size:11px}.appointment-dialog dd{margin:0;font-size:13px;font-weight:600;overflow-wrap:anywhere}.appointment-dialog-services{display:grid;gap:8px;margin-top:16px}.appointment-dialog-services>div{display:flex;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+@media(max-width:900px){.dashboard-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.appointment-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.dashboard-overview{gap:9px}.overview-card{padding:15px}.overview-card strong{font-size:28px}.appointment-filters{grid-template-columns:1fr}.appointment-dialog{padding:24px 18px}.appointment-dialog dl{grid-template-columns:1fr}}
+
+/* Product editor refresh */
+.product-editor-premium{display:grid;gap:24px;padding:clamp(18px,3vw,32px);border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 16px 50px rgba(0,0,0,.06)}
+.product-editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.product-editor-heading h2{margin:8px 0 5px;font:500 clamp(26px,3vw,34px)/1.1 'Inter','Noto Sans Arabic',sans-serif}
+.product-editor-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.product-image-manager{display:grid;gap:22px}
+.product-main-image,.product-gallery-manager{padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.product-main-image{display:grid;grid-template-columns:minmax(135px,.35fr) minmax(0,1fr);align-items:center;gap:18px}
+.product-main-image>div:first-child{display:grid;gap:6px}
+.product-image-section-label,.gallery-heading strong{font-size:14px;font-weight:700;color:var(--ink)}
+.product-main-image small,.gallery-heading span{color:var(--muted);font-size:12px;line-height:1.5}
+.product-image-slot{display:grid;grid-template-columns:120px minmax(0,1fr);align-items:center;gap:14px;min-width:0}
+.product-image-slot-preview{display:grid;width:120px;height:100px;overflow:hidden;place-items:center;border:1px dashed var(--line);border-radius:8px;background:var(--surface-muted);color:var(--accent);font:600 30px/1 'Inter','Noto Sans Arabic',sans-serif}
+.product-image-slot-preview img{width:100%;height:100%;object-fit:cover}
+.product-image-slot-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.product-image-slot-actions input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}
+.image-action-button,.gallery-empty-action,.image-remove-button{display:inline-flex;min-height:38px;align-items:center;justify-content:center;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;text-decoration:none}
+.image-action-button:hover,.gallery-empty-action:hover{border-color:var(--accent);color:var(--accent)}
+.product-image-slot:focus-within .image-action-button{outline:2px solid var(--accent);outline-offset:2px}
+.image-remove-button{color:var(--danger)}
+.product-gallery-manager{display:grid;gap:14px}
+.gallery-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gallery-heading>div{display:grid;gap:3px}
+.gallery-heading>b{color:var(--muted);font-size:12px}
+.product-gallery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.product-gallery-grid .product-image-slot{grid-template-columns:1fr;align-content:start;gap:8px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.product-gallery-grid .product-image-slot-preview{width:100%;height:120px}
+.product-gallery-grid .product-image-slot-actions{justify-content:space-between}
+.product-gallery-grid .image-action-button,.product-gallery-grid .image-remove-button{min-height:34px;padding:0 9px;font-size:11px}
+.product-gallery-grid .product-image-slot-actions input{width:1px}
+.image-upload-progress{display:grid;gap:8px;color:var(--muted);font-size:12px;font-weight:700}
+.image-upload-progress progress{width:100%;height:8px;accent-color:var(--accent)}
+.product-fields-grid{align-items:start}
+.product-fields-grid input,.product-fields-grid select,.product-fields-grid textarea{min-height:44px;border-radius:6px}
+.product-fields-grid textarea{min-height:120px}
+.product-active-toggle{display:flex!important;min-height:68px;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--paper)}
+.product-active-toggle>input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent)}
+.product-active-toggle>span{display:grid;gap:3px}.product-active-toggle strong{color:var(--ink);font-size:12px}.product-active-toggle small{color:var(--muted);font-size:11px;font-weight:400}
+.product-form-actions{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-top:17px;border-top:1px solid var(--line)}
+.product-form-actions>div{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.product-form-actions .danger-action,.archive-product-button{min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}
+.archive-product-button{color:var(--muted)}
+.product-form-actions button:disabled{opacity:.55;cursor:wait}
+.product-feedback{margin:0 0 15px;padding:12px 14px;border:1px solid var(--line);border-radius:7px;font-size:13px}
+.product-feedback.success{border-color:var(--status-success-text);background:var(--status-success-bg);color:var(--status-success-text)}
+.product-feedback.error{border-color:var(--danger);background:var(--danger-bg);color:var(--danger)}
+.managed-product-meta{display:grid;gap:4px;min-width:110px;color:var(--muted);font-size:11px}
+.managed-product-thumb-empty{display:grid;width:75px;height:70px;flex:0 0 75px;place-items:center;background:var(--surface-muted);color:var(--accent);font:600 23px 'Inter','Noto Sans Arabic',sans-serif}
+.managed-actions .edit-product-button{border-color:var(--accent);color:var(--accent);font-weight:700}
+@media(max-width:760px){.product-main-image{grid-template-columns:1fr}.product-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-form-actions{align-items:stretch;flex-direction:column}.product-form-actions>div:last-child{justify-content:flex-end}.managed-product-meta{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;padding-inline-start:92px}}
+@media(max-width:440px){.product-editor-heading{flex-direction:column}.product-editor-heading>.text-button{align-self:flex-start}.product-image-slot{grid-template-columns:90px minmax(0,1fr);gap:9px}.product-image-slot-preview{width:90px;height:82px}.product-gallery-grid .product-image-slot-preview{width:100%;height:95px}.product-gallery-grid .product-image-slot-actions{gap:5px}.product-gallery-grid .image-action-button,.product-gallery-grid .image-remove-button{padding:0 7px}}
+
+.managed-old-price{margin-inline-start:8px;color:var(--muted);font-size:11px}
+
+/* Consistent dashboard controls */
+.dashboard-page button,
+.dashboard-page .image-action-button {
+  font-family: inherit;
+  transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.dashboard-page button:focus-visible,
+.dashboard-page .image-action-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 72%, white);
+  outline-offset: 2px;
+}
+
+.dashboard-toolbar {
+  align-items: stretch;
+  gap: 14px;
+}
+
+.dashboard-tabs {
+  min-height: 48px;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-muted);
+}
+
+.dashboard-tabs button {
+  display: inline-flex;
+  min-width: 132px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .25px;
+  text-transform: none;
+}
+
+.dashboard-tabs button svg,
+.add-product-button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-tabs button:hover:not(.active) {
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+}
+
+.dashboard-tabs button.active {
+  background: #292724;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .16);
+}
+
+.primary-button,
+.appointment-actions > button.status-action {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 1px solid #292724;
+  border-radius: 7px;
+  background: #292724;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .15px;
+  text-transform: none;
+}
+
+.primary-button:hover:not(:disabled),
+.appointment-actions > button.status-action:hover:not(:disabled) {
+  border-color: #47433e;
+  background: #47433e;
+  filter: none;
+}
+
+.add-product-button {
+  min-width: 154px;
+  align-self: stretch;
+}
+
+.dashboard-page .primary-button:disabled,
+.dashboard-page .appointment-actions > button:disabled,
+.dashboard-page .managed-actions button:disabled {
+  opacity: .56;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.appointment-actions > button.status-action {
+  border-color: var(--status-success-text);
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.appointment-actions > button.status-action:hover:not(:disabled) {
+  border-color: var(--status-success-text);
+  background: color-mix(in srgb, var(--status-success-bg) 78%, var(--status-success-text));
+  color: var(--ink);
+}
+
+.appointment-actions > a,
+.appointment-actions > button,
+.appointment-view-details,
+.managed-actions button,
+.product-form-actions button,
+.product-image-slot-actions .image-action-button,
+.product-image-slot-actions .image-remove-button {
+  min-height: 40px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.appointment-actions > a,
+.appointment-actions > button:not(.status-action),
+.appointment-view-details,
+.managed-actions button:not(.danger-action),
+.product-image-slot-actions .image-action-button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.appointment-actions > a:hover,
+.appointment-actions > button:not(.status-action):hover:not(:disabled),
+.appointment-view-details:hover,
+.managed-actions button:not(.danger-action):hover:not(:disabled),
+.product-image-slot-actions .image-action-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.appointment-actions > button.danger-action,
+.managed-actions button.danger-action,
+.product-form-actions .danger-action,
+.product-image-slot-actions .image-remove-button {
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--line));
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.appointment-actions > button.danger-action:hover:not(:disabled),
+.managed-actions button.danger-action:hover:not(:disabled),
+.product-form-actions .danger-action:hover:not(:disabled),
+.product-image-slot-actions .image-remove-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.managed-product {
+  min-width: 0;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 10px;
+}
+
+.managed-product > img,
+.managed-product-thumb-empty {
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+.managed-actions {
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.managed-actions button {
+  min-width: 40px;
+  min-height: 38px;
+  padding: 0 11px;
+}
+
+.managed-actions button[title] {
+  width: 40px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.managed-actions .edit-product-button {
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--accent);
+}
+
+.managed-actions .edit-product-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.product-editor-premium {
+  gap: 22px;
+  border-radius: 12px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, .045);
+}
+
+.product-image-slot-preview,
+.product-gallery-grid .product-image-slot-preview {
+  border-radius: 8px;
+}
+
+.product-fields-grid input,
+.product-fields-grid select,
+.product-fields-grid textarea {
+  border-radius: 7px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.product-fields-grid input:focus,
+.product-fields-grid select:focus,
+.product-fields-grid textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 17%, transparent);
+  outline: none;
+}
+
+.product-form-actions .text-button,
+.product-editor-heading > .text-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.product-form-actions .text-button:hover:not(:disabled),
+.product-editor-heading > .text-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.archive-product-button {
+  min-height: 42px;
+  padding-inline: 13px;
+  border-radius: 7px;
+}
+
+.deposit-status-control select,
+.request-controls select {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.deposit-status-control select:focus-visible,
+.request-controls select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 72%, white);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .dashboard-toolbar {
+    gap: 10px;
+  }
+
+  .dashboard-tabs {
+    width: 100%;
+  }
+
+  .dashboard-tabs button {
+    min-width: 0;
+    flex: 1;
+    padding-inline: 10px;
+  }
+
+  .dashboard-toolbar > .primary-button {
+    min-height: 44px;
+  }
+
+  .managed-actions {
+    justify-content: stretch;
+  }
+
+  .managed-actions button {
+    flex: 1 1 auto;
+  }
+
+  .managed-actions button[title] {
+    flex: 0 0 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page button,
+  .dashboard-page .image-action-button,
+  .product-fields-grid input,
+  .product-fields-grid select,
+  .product-fields-grid textarea {
+    transition: none;
+  }
+}
+
+/* Appointment list */
+.appointment-list-heading {
+  align-items: end;
+  margin-block-end: 2px;
+}
+
+.appointment-result-count {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding-inline: 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.appointment-filters {
+  grid-template-columns: minmax(220px, 1.8fr) repeat(4, minmax(125px, 1fr));
+  gap: 12px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.appointment-filters input,
+.appointment-filters select {
+  min-height: 42px;
+  padding: 0 11px;
+  border-radius: 7px;
+}
+
+.appointment-filters input:focus-visible,
+.appointment-filters select:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  outline-offset: 1px;
+}
+
+.appointment-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.appointment-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: start;
+}
+
+.appointment-table th {
+  padding: 12px 14px;
+  border-block-end: 1px solid var(--line);
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .65px;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.appointment-table td {
+  min-width: 0;
+  padding: 14px;
+  border-block-end: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.appointment-table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.appointment-table tbody tr:hover {
+  background: color-mix(in srgb, var(--surface-muted) 48%, transparent);
+}
+
+.appointment-table-customer,
+.appointment-table-service,
+.appointment-table-date,
+.appointment-table-price {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.appointment-table-customer strong,
+.appointment-table-service strong,
+.appointment-table-date strong,
+.appointment-table-price strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.appointment-table-customer > span:not(.appointment-reference),
+.appointment-table-service small,
+.appointment-table-date small,
+.appointment-table-price small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.appointment-table-customer small {
+  max-width: 190px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.appointment-reference {
+  width: fit-content;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.appointment-table-status,
+.appointment-table-actions {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+}
+
+.appointment-table .appointment-status,
+.deposit-status-badge {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 25px;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.appointment-table .appointment-status.status-awaiting_payment {
+  border-color: color-mix(in srgb, #d6a63d 42%, var(--line));
+  background: color-mix(in srgb, #d6a63d 14%, var(--surface));
+  color: color-mix(in srgb, #d6a63d 76%, var(--ink));
+}
+
+.deposit-status-badge {
+  border-color: var(--line);
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
+.deposit-status-badge.deposit-payment_verified {
+  border-color: color-mix(in srgb, var(--status-success-text) 45%, var(--line));
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.deposit-status-badge.deposit-refunded {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+}
+
+.appointment-table-actions {
+  min-width: 145px;
+}
+
+.appointment-primary-action,
+.appointment-dialog-actions .status-action {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid var(--status-success-text);
+  border-radius: 6px;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.appointment-primary-action:hover:not(:disabled),
+.appointment-dialog-actions .status-action:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.appointment-primary-action:disabled,
+.appointment-dialog-actions button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.appointment-table-actions .appointment-view-details {
+  min-height: 34px;
+  padding: 0 9px;
+  background: transparent;
+  font-size: 10px;
+}
+
+.appointment-payment-hint {
+  max-width: 180px;
+  line-height: 1.4;
+}
+
+.appointment-contact-link {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  margin-block: 0 18px;
+  padding-inline: 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.appointment-contact-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.appointment-dialog-totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-start: 15px;
+  padding: 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.appointment-dialog-totals span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.appointment-dialog-totals strong {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.appointment-dialog-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 18px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--line);
+}
+
+.appointment-dialog-actions .deposit-status-control {
+  min-width: 175px;
+  margin-inline-start: auto;
+}
+
+.appointment-dialog-actions .danger-action {
+  min-height: 40px;
+  padding-inline: 12px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--danger);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.appointment-dialog-actions .danger-action:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.appointment-filters input,
+.appointment-filters select,
+.appointment-dialog-actions .deposit-status-control select {
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.appointment-filters input:focus-visible,
+.appointment-filters select:focus-visible,
+.appointment-dialog-actions .deposit-status-control select:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 58%, var(--ink));
+  outline-offset: 2px;
+}
+
+.appointment-table-actions .appointment-primary-action:focus-visible,
+.appointment-table-actions .appointment-view-details:focus-visible,
+.appointment-dialog-actions button:focus-visible,
+.appointment-dialog-close:focus-visible,
+.appointment-contact-link:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 58%, var(--ink));
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .appointment-filters input:hover:not(:disabled),
+  .appointment-filters select:hover:not(:disabled),
+  .appointment-dialog-actions .deposit-status-control select:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+
+  .appointment-table-actions .appointment-view-details:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  }
+
+  .appointment-dialog-close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+@media (max-width: 1150px) {
+  .appointment-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .appointment-filters label:first-child {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1150px) {
+  .appointment-table {
+    table-layout: fixed;
+  }
+
+  .appointment-table th {
+    padding: 10px 7px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .appointment-table td {
+    padding: 10px 7px;
+  }
+
+  .appointment-table th:nth-child(1),
+  .appointment-table td:nth-child(1) { width: 21%; }
+  .appointment-table th:nth-child(2),
+  .appointment-table td:nth-child(2) { width: 15%; }
+  .appointment-table th:nth-child(3),
+  .appointment-table td:nth-child(3) { width: 19%; }
+  .appointment-table th:nth-child(4),
+  .appointment-table td:nth-child(4) { width: 12%; }
+  .appointment-table th:nth-child(5),
+  .appointment-table td:nth-child(5) { width: 16%; }
+  .appointment-table th:nth-child(6),
+  .appointment-table td:nth-child(6) { width: 17%; }
+
+  .appointment-table-actions {
+    min-width: 0;
+  }
+
+  .appointment-table-actions .appointment-primary-action,
+  .appointment-table-actions .appointment-view-details {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .appointment-table .appointment-status,
+  .appointment-table .deposit-status-badge {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1023px) {
+  .appointment-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .appointment-table,
+  .appointment-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .appointment-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .appointment-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+  }
+
+  .appointment-table td {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 13px;
+    border-block-end: 1px solid var(--line);
+  }
+
+  .appointment-table td > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .appointment-table td::before {
+    flex: 0 0 auto;
+    color: var(--muted);
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .appointment-table td:nth-child(1),
+  .appointment-table td:nth-child(2),
+  .appointment-table td:nth-child(6) {
+    grid-column: 1 / -1;
+  }
+
+  .appointment-table td:nth-child(1) {
+    border-block-start: 3px solid var(--accent);
+  }
+
+  .appointment-table td:nth-child(6) {
+    border-block-end: 0;
+  }
+
+  .appointment-table-status,
+  .appointment-table-actions {
+    justify-items: end;
+  }
+
+  .appointment-table-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .appointment-table-actions .appointment-payment-hint {
+    flex-basis: 100%;
+    max-width: none;
+    text-align: end;
+  }
+}
+
+@media (max-width: 767px) {
+  .appointment-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .appointment-result-count {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .appointment-filters {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .appointment-filters input,
+  .appointment-filters select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .appointment-filters label:first-child {
+    grid-column: auto;
+  }
+
+  .appointment-table,
+  .appointment-table tbody {
+    gap: 14px;
+  }
+
+  .appointment-table tbody tr {
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .045);
+  }
+
+  .appointment-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 6px;
+    padding: 12px 15px;
+  }
+
+  .appointment-table td::before {
+    font-size: 10px;
+    line-height: 1.3;
+    letter-spacing: .04em;
+  }
+
+  .appointment-table-customer strong,
+  .appointment-table-service strong,
+  .appointment-table-date strong,
+  .appointment-table-price strong {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .appointment-table-customer > span:not(.appointment-reference),
+  .appointment-table-service small,
+  .appointment-table-date small,
+  .appointment-table-price small {
+    font-size: 12px;
+  }
+
+  .appointment-table-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-items: initial;
+    gap: 7px;
+  }
+
+  .appointment-table .appointment-status,
+  .appointment-table .deposit-status-badge {
+    min-height: 30px;
+    font-size: 11px;
+  }
+
+  .appointment-table td:nth-child(1),
+  .appointment-table td:nth-child(2),
+  .appointment-table td:nth-child(6) {
+    grid-column: auto;
+  }
+
+  .appointment-table td:nth-child(1) {
+    border-block-start-width: 3px;
+  }
+
+  .appointment-table td:nth-child(6) {
+    border-block-end: 0;
+  }
+
+  .appointment-table-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 135px), 1fr));
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  .appointment-table-actions .appointment-primary-action,
+  .appointment-table-actions .appointment-view-details {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .appointment-table-actions .appointment-payment-hint {
+    grid-column: 1 / -1;
+    text-align: start;
+  }
+
+  .appointment-dialog {
+    padding: 25px 17px;
+  }
+
+  .appointment-dialog-actions .deposit-status-control {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+.appointment-dialog-backdrop {
+  overscroll-behavior: contain;
+}
+
+.appointment-dialog {
+  max-height: min(85vh, 800px);
+  max-height: min(85dvh, 800px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

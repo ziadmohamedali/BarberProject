@@ -1,5 +1,7 @@
+/* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../lib/i18n";
+import useScrollLock from "../../hooks/useScrollLock";
 import "./NavigationSidebar.css";
 
 function NavigationIcon({ name }) {
@@ -62,6 +64,7 @@ function NavigationSidebar({
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mobile, setMobile] = useState(() => window.matchMedia("(max-width: 900px)").matches);
+  useScrollLock(drawerOpen && mobile);
   const menuButtonRef = useRef(null);
   const firstNavRef = useRef(null);
   const drawerWasOpenRef = useRef(false);
@@ -93,8 +96,6 @@ function NavigationSidebar({
       return undefined;
     }
     drawerWasOpenRef.current = true;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     firstNavRef.current?.focus();
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -116,7 +117,6 @@ function NavigationSidebar({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [drawerOpen]);

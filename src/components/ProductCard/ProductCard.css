@@ -1,15 +1,14 @@
 .product-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
   overflow: hidden;
-  transition: transform .22s ease, box-shadow .22s ease, border-color .2s ease;
-  box-shadow: 0 10px 22px rgba(32, 32, 30, .03);
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 38px rgba(28, 24, 20, .09);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .product-card.selected {
@@ -18,8 +17,11 @@
 
 .product-card-image {
   position: relative;
-  height: 300px;
+  flex: 0 0 auto;
+  aspect-ratio: 4 / 3;
+  margin: 10px 10px 0;
   overflow: hidden;
+  border-radius: 9px;
   background: var(--surface-muted);
 }
 
@@ -27,113 +29,201 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform .45s ease;
+  object-position: center;
+  transition: transform .3s ease;
 }
 
 .product-image-placeholder {
+  display: grid;
   width: 100%;
   height: 100%;
-  display: grid;
   place-items: center;
   color: var(--muted);
-  font: 500 24px/1 'Inter', 'Noto Sans Arabic', sans-serif;
-  letter-spacing: 3px;
-}
-
-.product-card:hover .product-card-image img {
-  transform: scale(1.035);
+  font: 600 22px/1 'Inter', 'Noto Sans Arabic', sans-serif;
+  letter-spacing: 2px;
 }
 
 .selected-badge {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 8px 11px;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--button-text) 16%, transparent);
+  border-radius: 6px;
   background: var(--accent);
   color: var(--button-text);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border-radius: 999px;
+  letter-spacing: .04em;
 }
 
 .product-card-content {
-  padding: 23px 24px 24px;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 16px 18px 18px;
 }
 
 .product-category {
   color: var(--accent);
   font-size: 10px;
   font-weight: 700;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  letter-spacing: 1.7px;
 }
 
 .product-card h3 {
-  margin: 9px 0;
-  font: 500 25px/1.15 'Inter', 'Noto Sans Arabic', sans-serif;
-  text-transform: uppercase;
+  min-height: 2.35em;
+  margin: 7px 0 0;
+  color: var(--ink);
+  font: 650 21px/1.2 'Inter', 'Noto Sans Arabic', sans-serif;
+  overflow-wrap: anywhere;
 }
 
-.product-card p {
-  min-height: 48px;
-  margin: 0;
+.product-card-description {
+  display: -webkit-box;
+  min-height: 4.65em;
+  margin: 9px 0 0;
+  overflow: hidden;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.65;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.product-card-description.is-empty {
+  visibility: hidden;
 }
 
 .card-duration {
-  display: inline-block;
-  margin-top: 10px;
+  width: fit-content;
+  margin-block-start: 10px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-muted);
   color: var(--muted);
   font-size: 11px;
+  line-height: 1.3;
 }
 
 .product-price {
   display: flex;
-  align-items: baseline;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  margin: 20px 0;
+  margin-block: auto 14px;
+  padding-block-start: 18px;
+}
+
+.product-price-values {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 9px;
 }
 
 .old-price {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .current-price {
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.product-discount {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent);
+  font-size: 11px;
   font-weight: 700;
-  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
 }
 
 .details-button {
   width: 100%;
-  padding: 14px;
-  border: 0;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid var(--button-bg);
+  border-radius: 7px;
   background: var(--button-bg);
   color: var(--button-text);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  transition: background .2s ease, transform .2s ease;
+  line-height: 1.35;
+  transition: background-color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
 }
 
 .details-button:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--button-bg) 82%, var(--ink));
+  background: color-mix(in srgb, var(--button-bg) 82%, var(--ink));
+}
+
+.product-card:focus-within {
+  border-color: var(--accent);
+}
+
+.details-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 58%, var(--ink));
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .product-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ink) 9%, transparent);
+  }
+
+  .product-card:hover .product-card-image img {
+    transform: scale(1.025);
+  }
+
+  .details-button:hover {
+    transform: translateY(-1px);
+  }
 }
 
 @media (max-width: 600px) {
-  .product-card-image {
-    height: 260px;
+  .product-card {
+    width: min(100%, 520px);
+    margin-inline: auto;
   }
 
   .product-card-content {
-    padding: 20px;
+    padding: 14px 15px 15px;
+  }
+
+  .product-card h3 {
+    font-size: 20px;
+  }
+
+  .current-price {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card,
+  .product-card-image img,
+  .details-button {
+    transition: none;
   }
 }

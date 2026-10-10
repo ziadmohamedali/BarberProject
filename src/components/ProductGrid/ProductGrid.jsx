@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import ProductCard from "../ProductCard/ProductCard";
 import "./ProductGrid.css";
 

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Home from "./pages/Home/Home";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import OwnerLoginModal from "./components/OwnerLoginModal/OwnerLoginModal";
 import { isSupabaseConfigured } from "./lib/supabase";
 import { createAppointment, getAppointmentErrorMessage, getAppointments, getBookings, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
 import { emptyContactSettings, getContactSettings, saveContactSettings } from "./features/auth/contactSettings/contactSettingsService";
@@ -13,8 +12,8 @@ import useAuth from "./features/auth/useAuth";
 
 function AppContent() {
   const { t } = useLanguage();
-  const { user: owner, loading: authLoading, login, logout, updatePassword } = useAuth();
-  const ownerAuthenticated = Boolean(owner);
+  const { user, loading: authLoading, login, logout, updatePassword } = useAuth();
+  const ownerAuthenticated = Boolean(user);
   const [theme, setTheme] = useState(() => {
     try {
       return window.localStorage.getItem("hadad-theme") === "light" ? "light" : "dark";
@@ -75,22 +74,25 @@ function AppContent() {
     setDataLoading(true);
     setPageError("");
     try {
-      const [nextProducts, nextBookings, nextAppointments, nextContactSettings] = await Promise.all([
+      const results = await Promise.allSettled([
         getProducts({ owner: true }),
         getBookings(),
         getAppointments(),
         getContactSettings(),
       ]);
-      setProducts(nextProducts);
-      setBookings(nextBookings);
-      setAppointments(nextAppointments);
-      setContactSettings(nextContactSettings);
-    } catch (error) {
-      setPageError(t(getAppointmentErrorMessage(error, "Could not load dashboard data.")));
+      const setters = [setProducts, setBookings, setAppointments, setContactSettings];
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") setters[index](result.value);
+      });
+
+      const failures = results
+        .filter((result) => result.status === "rejected")
+        .map((result) => getAppointmentErrorMessage(result.reason, "Could not load dashboard data."));
+      if (failures.length) setPageError(failures.join(" "));
     } finally {
       setDataLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -151,9 +153,9 @@ function AppContent() {
     navigate("/");
   };
 
-  const handleOwnerLogin = async (email, password) => {
-    await login(email, password);
-    setPageError("");
+  const handleOwnerLogin = async (username, password) => {
+    await login(username, password);
+    setLoginOpen(false);
     navigate("/dashboard");
   };
 
@@ -203,14 +205,11 @@ function AppContent() {
         contactSettings={contactSettings}
         onBookingCreated={handleCreateBooking}
         onOpenOwnerLogin={() => setLoginOpen(true)}
+        onCloseOwnerLogin={() => setLoginOpen(false)}
         loginOpen={loginOpen}
+        onOwnerLogin={handleOwnerLogin}
       />
     )}
-    <OwnerLoginModal
-      isOpen={loginOpen}
-      onClose={() => setLoginOpen(false)}
-      onLogin={handleOwnerLogin}
-    />
   </>;
 }
 
