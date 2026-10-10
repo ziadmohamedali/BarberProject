@@ -132,8 +132,10 @@
 .select-product-button {
   width: 100%;
   margin-top: 24px;
-  padding: 16px;
-  border: 0;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--button-bg);
+  border-radius: 7px;
   background: var(--button-bg);
   color: var(--button-text);
   cursor: pointer;
@@ -141,10 +143,24 @@
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
+  transition: filter .16s ease, transform .16s ease, box-shadow .16s ease;
 }
 
 .select-product-button:hover {
   filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.select-product-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 58%, var(--ink));
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-product-button {
+    transition: none;
+  }
 }
 
 @media (max-width: 750px) {

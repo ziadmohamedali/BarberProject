@@ -146,6 +146,13 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
     }, 0);
   };
 
+  const handleBackToServices = () => {
+    setShowCustomerForm(false);
+    try { window.sessionStorage.setItem("hadad-checkout-open", "false"); }
+    catch { /* Keep the current view state if browser storage is unavailable. */ }
+    setTimeout(() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" }), 0);
+  };
+
   const handleBookingSuccess = async (booking) => {
     const request = {
       ...booking,
@@ -304,17 +311,16 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
         />
       )}
 
-      {showCustomerForm && selectedProducts.length > 0 ? (
-        <div id="customer-form">
-          <CustomerForm selectedProducts={selectedProducts} onSuccess={handleBookingSuccess} />
-        </div>
-      ) : (
+      <div id="customer-form" className="checkout-view" hidden={!showCustomerForm}>
+        <CustomerForm selectedProducts={selectedProducts} onSuccess={handleBookingSuccess} onBack={handleBackToServices} />
+      </div>
+      <div className="checkout-view" hidden={showCustomerForm}>
         <SelectionSummary
           selectedProducts={selectedProducts}
           onRemove={handleRemoveProduct}
           onContinue={handleContinue}
         />
-      )}
+      </div>
 
       <section className="contact-section" id="contact" aria-labelledby="contact-title">
         <div className="section-heading center">

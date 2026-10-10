@@ -857,6 +857,21 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, .16);
 }
 
+:root:not([data-theme="light"]) .dashboard-tabs button.active {
+  background: #C89D6C;
+  color: #171615;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18), 0 1px 3px rgba(0, 0, 0, .24);
+}
+
+@media (hover: hover) {
+  :root:not([data-theme="light"]) .dashboard-tabs button.active:hover {
+    transform: translateY(-1px);
+    background: #D4AC80;
+    color: #171615;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), 0 4px 12px rgba(0, 0, 0, .24);
+  }
+}
+
 .primary-button,
 .appointment-actions > button.status-action {
   display: inline-flex;
@@ -885,6 +900,18 @@
 .add-product-button {
   min-width: 154px;
   align-self: stretch;
+}
+
+.dashboard-toolbar .add-product-button {
+  border-color: #C89D6C;
+  background: #C89D6C;
+  color: #171615;
+}
+
+.dashboard-toolbar .add-product-button:hover:not(:disabled) {
+  border-color: #D4AC80;
+  background: #D4AC80;
+  color: #171615;
 }
 
 .dashboard-page .primary-button:disabled,

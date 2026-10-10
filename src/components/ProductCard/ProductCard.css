@@ -157,8 +157,12 @@
 }
 
 .details-button {
+  display: inline-flex;
   width: 100%;
   min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   padding: 10px 14px;
   border: 1px solid var(--button-bg);
   border-radius: 7px;
@@ -171,9 +175,19 @@
   transition: background-color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
 }
 
+.details-button::after {
+  content: "→";
+  font-size: 16px;
+  line-height: 1;
+  transition: transform .16s ease;
+}
+
+[dir="rtl"] .details-button::after {
+  content: "←";
+}
+
 .details-button:hover {
-  border-color: color-mix(in srgb, var(--button-bg) 82%, var(--ink));
-  background: color-mix(in srgb, var(--button-bg) 82%, var(--ink));
+  filter: brightness(1.08);
 }
 
 .product-card:focus-within {
@@ -198,6 +212,15 @@
 
   .details-button:hover {
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+
+  .details-button:hover::after {
+    transform: translateX(2px);
+  }
+
+  [dir="rtl"] .details-button:hover::after {
+    transform: translateX(-2px);
   }
 }
 
@@ -223,7 +246,8 @@
 @media (prefers-reduced-motion: reduce) {
   .product-card,
   .product-card-image img,
-  .details-button {
+  .details-button,
+  .details-button::after {
     transition: none;
   }
 }
