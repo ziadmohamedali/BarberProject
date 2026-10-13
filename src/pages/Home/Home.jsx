@@ -30,7 +30,7 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
-function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreated, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, onOwnerLogin }) {
+function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onBookingCreated, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, onOwnerLogin }) {
   const { language, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("haircut");
   const [selectedProducts, setSelectedProducts] = useState(() => {
@@ -177,7 +177,8 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
     "",
     `${t("Booking reference:")} ${submittedBooking.reference}`,
     `${t("Name:")} ${submittedBooking.customerName}`,
-    ...submittedBooking.services.map((service) => `${service.title} — ${service.price} ${t("EGP")}`),
+    ...submittedBooking.services.map((service) => `${service.title} â€” ${service.price} ${t("EGP")}`),
+    ...(submittedBooking.preferredAppointmentAt ? [`${t("Requested appointment time:")} ${new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(submittedBooking.preferredAppointmentAt))}`, t("This time is a preference, not a confirmation.")] : []),
     `${t("Deposit:")} ${submittedBooking.deposit} ${t("EGP")}`,
   ].join("\n");
   const whatsappDigits = String(contactSettings?.whatsappPhone || "").replace(/\D/g, "");
@@ -187,11 +188,11 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
       ? `20${whatsappDigits.slice(1)}`
       : whatsappDigits;
   const whatsappHref = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage || "")}`
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage || t("Hello Hadad, I’d like to ask about your services."))}`
     : "";
 
   if (confirmationLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Verifying your appointment…")}</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Verifying your appointmentâ€¦")}</p></div></main>;
   }
 
   if (confirmationError) {
@@ -224,15 +225,16 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
         <div className="public-main">
         <main className="success-screen">
         <div className="success-content">
-          <div className="success-icon">✓</div>
+          <div className="success-icon">âœ“</div>
           <span>HADAD</span>
           <h1>{t("Request Received")}</h1>
           <p className="success-greeting">{t("Thank you{suffix}!", { suffix: submittedBooking.customerName ? `${language === "ar" ? "، " : ", "}${submittedBooking.customerName}` : "" })}</p>
           <div className="appointment-confirmation-details">
             <p><strong>{t("Booking reference:")}</strong> {submittedBooking.reference}</p>
             <p><strong>{t("Service:")}</strong> {submittedBooking.services.map((service) => service.title).join(", ")}</p>
+            {submittedBooking.preferredAppointmentAt && <p><strong>{t("Requested appointment time:")}</strong> {new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(submittedBooking.preferredAppointmentAt))} · {t("preference, not confirmation")}</p>}
             <p><strong>{t("Total:")}</strong> {submittedBooking.total} {t("EGP")}</p>
-            <p><strong>{t("Deposit:")}</strong> {submittedBooking.deposit} {t("EGP")} · {t(depositStatusLabel(submittedBooking.depositStatus))}</p>
+            <p><strong>{t("Deposit:")}</strong> {submittedBooking.deposit} {t("EGP")} Â· {t(depositStatusLabel(submittedBooking.depositStatus))}</p>
           </div>
           <p><strong>{t("Booking status")}:</strong> {t(bookingStatusLabel(submittedBooking.bookingStatus))}</p>
           <p>{t("Your request has been received. We will contact you through WhatsApp to confirm availability and provide deposit payment instructions. No payment is required now.")}</p>
@@ -240,6 +242,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
           <button onClick={() => window.location.assign("/")}>{t("Back to Hadad")}</button>
         </div>
         </main>
+        {whatsappHref && <FloatingWhatsApp href={whatsappHref} label={t("Chat with us on WhatsApp")} />}
         </div>
       </>
     );
@@ -262,8 +265,8 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
       <section className="hero" id="top">
         <div className="hero-content" id="about">
           <span className="eyebrow">{t("INDEPENDENT BARBER · OWNED AND RUN BY HADAD")}</span>
-          <h1>{t("Sharp cuts.")}<br />{t("Clean style.")}</h1>
-          <p>{t("Premium barbering for gentlemen who want a sharp finish, a relaxed experience, and a look that lasts beyond the chair.")}</p>
+          <h1>{(language === "ar" ? (homeSettings?.headingAr || "قصة مميزة.\nأناقة تدوم.") : (homeSettings?.headingEn || "Sharp cuts.\nClean style.")).split("\n").map((line, index, lines) => <span key={`${index}-${line}`}>{line}{index < lines.length - 1 && <br />}</span>)}</h1>
+          <p>{language === "ar" ? homeSettings?.descriptionAr : homeSettings?.descriptionEn || t("Premium barbering for gentlemen who want a sharp finish, a relaxed experience, and a look that lasts beyond the chair.")}</p>
           <div className="hero-actions">
             <a href="#products">{t("Book a service")}</a>
             <a href="#contact" className="secondary-link">{t("Contact")}</a>
@@ -277,12 +280,14 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
 
         <div className="hero-visual" aria-label={t("Portrait and service details")}>
           <div className="hero-photo-card">
-            <img src={barberImage} alt={t("Barber finishing a haircut")} />
+            <img src={homeSettings?.imageUrl || barberImage} alt={t("Barber finishing a haircut")} />
             <div className="floating-badge top">{t("Modern Grooming")}</div>
             <div className="floating-badge bottom">{t("From 150 EGP")}</div>
           </div>
         </div>
       </section>
+
+      {(language === "ar" ? homeSettings?.rulesAr : homeSettings?.rulesEn) && <aside className="booking-rules-note"><span aria-hidden="true">i</span><p>{language === "ar" ? homeSettings.rulesAr : homeSettings.rulesEn}</p></aside>}
 
       <section className="products-section" id="products">
         <div className="section-heading center">
@@ -346,12 +351,19 @@ function Home({ theme, onToggleTheme, products, contactSettings, onBookingCreate
 
       <footer className="site-footer">
         <a className="brand-mark" href="#top">HADAD<span>.</span></a>
-        <span dir="ltr">© 2026 HADAD · Independently owned and operated by Ziad</span>
+        <span dir="ltr">&copy; 2026 HADAD &middot; Independently owned and operated by Ziad</span>
       </footer>
       </main>
+      {whatsappHref && <FloatingWhatsApp href={whatsappHref} label={t("Chat with us on WhatsApp")} />}
       </div>
     </>
   );
+}
+
+function FloatingWhatsApp({ href, label }) {
+  return <a className="floating-whatsapp" href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}>
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.04 3.2A12.7 12.7 0 0 0 5.1 22.35L3.4 28.6l6.4-1.68A12.7 12.7 0 1 0 16.04 3.2Zm0 23.2c-2 0-3.96-.54-5.66-1.57l-.4-.24-3.8 1 1.02-3.7-.26-.42A10.5 10.5 0 1 1 16.04 26.4Zm5.77-7.86c-.32-.16-1.9-.94-2.2-1.05-.3-.1-.5-.16-.72.16-.22.33-.83 1.05-1.02 1.27-.18.22-.37.24-.7.08-.32-.16-1.37-.5-2.61-1.6-.97-.86-1.62-1.93-1.81-2.26-.19-.32-.02-.5.14-.66.14-.14.32-.37.48-.56.16-.18.21-.32.32-.54.1-.21.05-.4-.03-.56-.08-.16-.72-1.74-.99-2.38-.26-.62-.52-.54-.72-.55h-.62c-.22 0-.56.08-.86.4-.3.32-1.13 1.1-1.13 2.68s1.16 3.1 1.32 3.31c.16.22 2.28 3.48 5.52 4.88.77.33 1.37.53 1.84.68.77.24 1.47.2 2.02.12.62-.1 1.9-.78 2.17-1.53.27-.76.27-1.4.19-1.53-.08-.13-.3-.21-.62-.37Z"/></svg>
+  </a>;
 }
 
 export default Home;

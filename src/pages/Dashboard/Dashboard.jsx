@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAppointmentErrorMessage } from "../../features/auth/bookings/bookingService";
 import ContactSettings from "../../components/ContactSettings/ContactSettings";
+import LiveHome from "./LiveHome";
 import NavigationSidebar from "../../components/NavigationSidebar/NavigationSidebar";
 import ProductEditor from "./ProductEditor";
 import { useLanguage } from "../../lib/i18n";
@@ -54,12 +55,46 @@ const localDateKey = (value) => {
   return `${date.getFullYear()}-${month}-${day}`;
 };
 
+const toDateTimeLocal = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+const nextFiveMinuteLocal = () => toDateTimeLocal(new Date(Math.ceil(Date.now() / 300000) * 300000));
+
+function AppointmentCheckpoints({ appointment, t }) {
+  const status = appointment.bookingStatus;
+  const isTerminal = ["cancelled", "rejected"].includes(status);
+  const depositDone = ["payment_verified", "refunded"].includes(appointment.depositStatus);
+  const steps = [
+    { label: "Request received", state: "complete" },
+    { label: "Owner review", state: status === "pending_review" ? "current" : "complete" },
+    { label: "Deposit verification", state: depositDone ? "complete" : status === "awaiting_payment" && !isTerminal ? "current" : "upcoming" },
+    { label: "Appointment confirmed", state: ["confirmed", "completed"].includes(status) ? "complete" : status === "awaiting_payment" && depositDone ? "current" : "upcoming" },
+    { label: "Visit completed", state: status === "completed" ? "complete" : status === "confirmed" ? "current" : "upcoming" },
+  ];
+  const nextStep = status === "pending_review" ? "Review the request and check availability."
+    : status === "awaiting_payment" && !depositDone ? "Contact the customer with deposit instructions, then verify payment."
+      : status === "awaiting_payment" ? "The deposit is verified. Confirm the appointment."
+        : status === "confirmed" ? "Mark the appointment complete after the visit."
+          : status === "completed" ? "This appointment is complete."
+            : status === "rejected" ? "This request was rejected."
+              : "This appointment was cancelled.";
+
+  return <section className="appointment-checkpoints" aria-label={t("Request checkpoints")}>
+    <div className="appointment-checkpoints-heading"><div><span className="eyebrow">{t("REQUEST FLOW")}</span><h3>{t("Request checkpoints")}</h3></div>{isTerminal && <span className="checkpoint-terminal">{t(bookingStatusLabel(status))}</span>}</div>
+    <ol>{steps.map((step) => <li className={`checkpoint-${step.state}`} key={step.label}><span className="checkpoint-marker" aria-hidden="true">{step.state === "complete" ? "✓" : ""}</span><span>{t(step.label)}</span></li>)}</ol>
+    {!isTerminal && <p className="checkpoint-next"><strong>{t("Next step")}</strong>{t(nextStep)}</p>}
+  </section>;
+}
+
 const emptyProduct = (category) => ({
   picture: "", title: "", description: "", price: "", oldPrice: "",
   category, duration: "", active: true, gallery: [], sortOrder: 0,
 });
 
-function Dashboard({ theme, onToggleTheme, products, bookings, appointments = [], contactSettings, onCreateProduct, onUploadProductImage, onDeleteUnusedProductImages, onUpdateProduct, onDeleteProduct, onReorderProducts, onUpdateBooking, onUpdateAppointment, onSaveContactSettings, onChangeOwnerPassword, onBackToShop, onLogout, onReload }) {
+function Dashboard({ theme, onToggleTheme, products, bookings, appointments = [], contactSettings, homeSettings, onCreateProduct, onUploadProductImage, onDeleteUnusedProductImages, onUpdateProduct, onDeleteProduct, onReorderProducts, onUpdateBooking, onUpdateAppointment, onSaveContactSettings, onSaveHomeSettings, onUploadHomeImage, onChangeOwnerPassword, onBackToShop, onLogout, onReload }) {
   const { language, t } = useLanguage();
   const [section, setSection] = useState("products");
   const [category, setCategory] = useState("haircut");
@@ -85,6 +120,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   const [appointmentService, setAppointmentService] = useState("all");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [appointmentMessage, setAppointmentMessage] = useState("");
+  const [appointmentDateDraft, setAppointmentDateDraft] = useState("");
 
   const categoryProducts = useMemo(
     () => products.filter((product) => product.category === category),
@@ -303,7 +339,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   };
 
   const deleteProduct = (product) => {
-    if (window.confirm(t("Are you sure you want to delete “{title}”?", { title: product.title }))) {
+    if (window.confirm(t("Are you sure you want to delete â€œ{title}â€?", { title: product.title }))) {
       runAction(() => onDeleteProduct(product.id));
     }
   };
@@ -360,25 +396,32 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
     return matchesQuery && matchesStatus && matchesDepositStatus && matchesDate && matchesService;
   });
   const selectedAppointment = appointments.find(appointment => appointment.id === selectedAppointmentId);
+  const selectedAppointmentIdValue = selectedAppointment?.id;
+  const selectedAppointmentAtValue = selectedAppointment?.appointmentAt;
   useScrollLock(Boolean(selectedAppointment));
   useEffect(() => {
-    if (!selectedAppointment) return undefined;
+    if (!selectedAppointmentIdValue) return undefined;
+    setAppointmentDateDraft(toDateTimeLocal(selectedAppointmentAtValue));
     const handleKeyDown = (event) => {
       if (event.key === "Escape") setSelectedAppointmentId(null);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedAppointment]);
+  }, [selectedAppointmentAtValue, selectedAppointmentIdValue]);
   const selectedContactNumber = selectedAppointment ? whatsappNumber(selectedAppointment.customer.whatsapp) : "";
+  const selectedAppointmentContext = [
+    selectedAppointment?.preferredAppointmentAt && `${t("Customer preference:")} ${formatAppointmentDate(selectedAppointment.preferredAppointmentAt, language)} (${t("preference, not confirmation")})`,
+    selectedAppointment?.appointmentAt && `${t("Current appointment time:")} ${formatAppointmentDate(selectedAppointment.appointmentAt, language)}`,
+  ].filter(Boolean).join("\n");
   const selectedWhatsAppText = selectedAppointment?.bookingStatus === "awaiting_payment"
-    ? t("Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
+    ? `${t("Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
       name: selectedAppointment.customer.name,
       reference: selectedAppointment.reference,
-    })
-    : selectedAppointment && t("Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
+    })}${selectedAppointmentContext}`
+    : selectedAppointment && `${t("Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
       name: selectedAppointment.customer.name,
       reference: selectedAppointment.reference,
-    });
+    })}${selectedAppointmentContext}`;
   const dashboardStats = [
     { label: "Pending requests", value: appointments.filter(item => ["pending_review", "awaiting_payment"].includes(item.bookingStatus)).length, tone: "pending" },
     { label: "Approved appointments", value: appointments.filter(item => item.bookingStatus === "confirmed").length, tone: "approved" },
@@ -426,6 +469,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
     { id: "products", label: "Products", icon: "services" },
     { id: "appointments", label: "Appointments", icon: "book" },
     { id: "requests", label: "Requests", icon: "requests" },
+    { id: "live-home", label: "Live Home", icon: "home" },
     { id: "contact-settings", label: "Contact Settings", icon: "settings" },
   ];
 
@@ -446,7 +490,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       <section className="dashboard-shell" id="dashboard">
         <div className="dashboard-title-row">
           <div><span className="eyebrow">{t("OWNER SPACE")}</span><h1>{t("Dashboard")}</h1></div>
-          <p className="dashboard-summary">{t("SHOP MANAGEMENT")} · {products.length} {t("Products")} · {appointments.length} {t("Appointments")} · {bookings.length} {t("Requests")}</p>
+          <p className="dashboard-summary">{t("SHOP MANAGEMENT")} Â· {products.length} {t("Products")} Â· {appointments.length} {t("Appointments")} Â· {bookings.length} {t("Requests")}</p>
         </div>
 
         <section className="dashboard-overview" aria-label={t("Booking overview")}>
@@ -463,7 +507,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
             <label>{t("Confirm new password")}<input type="password" autoComplete="new-password" minLength={8} required value={passwordForm.confirmation} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmation: event.target.value }))} /></label>
             {passwordError && <p className="editor-error" role="alert">{t(passwordError)}</p>}
             {passwordSaved && <p className="password-saved" role="status">{t("Password updated successfully.")}</p>}
-            <button className="primary-button" type="submit" disabled={passwordBusy}>{passwordBusy ? t("Updating…") : t("Update password")}</button>
+            <button className="primary-button" type="submit" disabled={passwordBusy}>{passwordBusy ? t("Updatingâ€¦") : t("Update password")}</button>
           </form>
         </details>
 
@@ -510,10 +554,10 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
               {categoryProducts.map((product, index) => (
                 <article className={`managed-product ${product.active ? "" : "is-hidden"}`} key={product.id}>
                   {product.picture ? <img src={product.picture} alt="" /> : <span className="managed-product-thumb-empty" aria-hidden="true">H.</span>}
-                  <div className="managed-product-info"><div className="managed-title"><h3>{product.title}</h3><span className={product.active ? "status-pill visible" : "status-pill"}>{t(product.active ? "Visible" : "Hidden")}</span></div><p>{product.price} {t("EGP")}{product.duration ? ` · ${product.duration} ${t("min")}` : ""}</p></div>
+                  <div className="managed-product-info"><div className="managed-title"><h3>{product.title}</h3><span className={product.active ? "status-pill visible" : "status-pill"}>{t(product.active ? "Visible" : "Hidden")}</span></div><p>{product.price} {t("EGP")}{product.duration ? ` Â· ${product.duration} ${t("min")}` : ""}</p></div>
 
                   <div className="managed-product-meta"><span>{t(product.category === "haircut" ? "Haircut Service" : "Package")}</span><span>{t("Order {number}", { number: product.sortOrder ?? index })}</span><span>{t("{number} gallery images", { number: product.gallery?.length || 0 })}</span></div>
-                  <div className="managed-actions"><button title={t("Move up")} aria-label={t("Move {title} up", { title: product.title })} disabled={index === 0 || busy} onClick={() => moveProduct(index, -1)}>↑</button><button title={t("Move down")} aria-label={t("Move {title} down", { title: product.title })} disabled={index === categoryProducts.length - 1 || busy} onClick={() => moveProduct(index, 1)}>↓</button><button className="edit-product-button" disabled={busy} onClick={() => beginEdit(product)}>{t("Edit product")}</button><button disabled={busy} onClick={() => toggleProduct(product)}>{t(product.active ? "Hide" : "Show")}</button><button className="danger-action" disabled={busy} onClick={() => deleteProduct(product)}>{t("Delete")}</button></div>
+                  <div className="managed-actions"><button title={t("Move up")} aria-label={t("Move {title} up", { title: product.title })} disabled={index === 0 || busy} onClick={() => moveProduct(index, -1)}>â†‘</button><button title={t("Move down")} aria-label={t("Move {title} down", { title: product.title })} disabled={index === categoryProducts.length - 1 || busy} onClick={() => moveProduct(index, 1)}>â†“</button><button className="edit-product-button" disabled={busy} onClick={() => beginEdit(product)}>{t("Edit product")}</button><button disabled={busy} onClick={() => toggleProduct(product)}>{t(product.active ? "Hide" : "Show")}</button><button className="danger-action" disabled={busy} onClick={() => deleteProduct(product)}>{t("Delete")}</button></div>
                 </article>
               ))}
             </div>
@@ -589,10 +633,10 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
                         <div className="appointment-table-customer"><strong>{appointment.customer.name}</strong><span className="appointment-reference">{appointment.reference}</span><span dir="ltr">{appointment.customer.whatsapp}</span>{appointment.customer.email && <small dir="ltr">{appointment.customer.email}</small>}</div>
                       </td>
                       <td data-label={t("Service")}>
-                        <div className="appointment-table-service"><strong>{appointment.services[0]?.title || "—"}</strong>{appointment.services.length > 1 && <span>{t("{number} more services", { number: appointment.services.length - 1 })}</span>}<small>{t("Duration")}: {formatAppointmentPrice(appointment.duration, language)} {t("min")}</small></div>
+                        <div className="appointment-table-service"><strong>{appointment.services[0]?.title || "â€”"}</strong>{appointment.services.length > 1 && <span>{t("{number} more services", { number: appointment.services.length - 1 })}</span>}<small>{t("Duration")}: {formatAppointmentPrice(appointment.duration, language)} {t("min")}</small></div>
                       </td>
                       <td data-label={t("Appointment date")}>
-                        <div className="appointment-table-date"><strong>{formatAppointmentDate(appointment.appointmentAt, language) || t("Not scheduled")}</strong>{appointment.createdAt && <small>{t("Request received")}: {formatAppointmentDate(appointment.createdAt, language)}</small>}</div>
+                        <div className="appointment-table-date"><strong>{t("Requested preference")}: {formatAppointmentDate(appointment.preferredAppointmentAt, language) || t("Not provided")}</strong><small>{t("Current appointment time")}: {formatAppointmentDate(appointment.appointmentAt, language) || t("Not scheduled")}</small>{appointment.createdAt && <small>{t("Request received")}: {formatAppointmentDate(appointment.createdAt, language)}</small>}</div>
                       </td>
                       <td data-label={t("Total")}>
                         <div className="appointment-table-price"><strong>{formatAppointmentPrice(appointment.total, language)} {t("EGP")}</strong><small>{t("Deposit")}: {formatAppointmentPrice(appointment.deposit, language)} {t("EGP")}</small></div>
@@ -620,7 +664,7 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
             {bookings.length === 0 && <div className="empty-state">{t("Customer requests will appear here once submitted.")}</div>}
             {bookings.map((booking) => (
               <article className="request-card" key={booking.id}>
-                <div className="request-head"><div><span className="eyebrow">{t("REQUEST · {date}", { date: booking.createdAt ? new Date(booking.createdAt).toLocaleString(language === "ar" ? "ar-EG" : "en") : t("Date unavailable") })}</span><h2>{booking.customer.name}</h2></div><a href={`https://wa.me/${whatsappNumber(booking.customer.whatsapp)}`} target="_blank" rel="noreferrer">{t("WhatsApp")} ↗</a></div>
+                <div className="request-head"><div><span className="eyebrow">{t("REQUEST Â· {date}", { date: booking.createdAt ? new Date(booking.createdAt).toLocaleString(language === "ar" ? "ar-EG" : "en") : t("Date unavailable") })}</span><h2>{booking.customer.name}</h2></div><a href={`https://wa.me/${whatsappNumber(booking.customer.whatsapp)}`} target="_blank" rel="noreferrer">{t("WhatsApp")} â†—</a></div>
                 <div className="request-contact"><span>{booking.customer.whatsapp}</span><span>{booking.customer.email}</span></div>
                 <div className="request-products">{booking.products.map((item, index) => <div key={`${item.productId}-${index}`}><span>{item.title}</span><strong>{item.price} {t("EGP")}</strong></div>)}</div>
                 <div className="request-totals"><div><span>{t("Total")}</span><strong>{booking.total} {t("EGP")}</strong></div><div><span>{t("Deposit")}</span><strong>{booking.deposit} {t("EGP")}</strong></div><div><span>{t("Remaining")}</span><strong>{booking.remaining} {t("EGP")}</strong></div></div>
@@ -628,6 +672,8 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
               </article>
             ))}
           </div>
+        ) : section === "live-home" ? (
+          <LiveHome settings={homeSettings} onSave={onSaveHomeSettings} onUploadImage={onUploadHomeImage} onDeleteImages={onDeleteUnusedProductImages} />
         ) : (
           <ContactSettings contactSettings={contactSettings} onSave={onSaveContactSettings} />
         )}
@@ -635,16 +681,18 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
       {selectedAppointment && (
         <div className="appointment-dialog-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setSelectedAppointmentId(null)}>
           <section className="appointment-dialog" role="dialog" aria-modal="true" aria-labelledby="appointment-dialog-title">
-            <button type="button" className="appointment-dialog-close" onClick={() => setSelectedAppointmentId(null)} aria-label={t("Close details")}>×</button>
+            <button type="button" className="appointment-dialog-close" onClick={() => setSelectedAppointmentId(null)} aria-label={t("Close details")}>Ã—</button>
             <span className="eyebrow">{t("REQUEST DETAILS")}</span>
             <h2 id="appointment-dialog-title">{selectedAppointment.customer.name}</h2>
             <p className="appointment-dialog-reference">{selectedAppointment.reference}</p>
             {selectedContactNumber && <a className="appointment-contact-link" href={`https://wa.me/${selectedContactNumber}?text=${encodeURIComponent(selectedWhatsAppText || "")}`} target="_blank" rel="noreferrer">{t("Contact on WhatsApp")}</a>}
             {appointmentMessage && <p className="appointment-success" role="status">{t(appointmentMessage)}</p>}
             {actionError && <p className="editor-error" role="alert">{t(actionError)}</p>}
+            <AppointmentCheckpoints appointment={selectedAppointment} t={t} />
             <dl>
               <div><dt>{t("Phone / WhatsApp")}</dt><dd>{selectedAppointment.customer.whatsapp}</dd></div>
               {selectedAppointment.customer.email && <div><dt>{t("Email")}</dt><dd>{selectedAppointment.customer.email}</dd></div>}
+              <div><dt>{t("Customer preference")}</dt><dd>{formatAppointmentDate(selectedAppointment.preferredAppointmentAt, language) || t("Not provided")}</dd></div>
               <div><dt>{t("Appointment date")}</dt><dd>{formatAppointmentDate(selectedAppointment.appointmentAt, language) || t("Not scheduled")}</dd></div>
               {selectedAppointment.createdAt && <div><dt>{t("Request received")}</dt><dd>{formatAppointmentDate(selectedAppointment.createdAt, language)}</dd></div>}
               <div><dt>{t("Appointment status")}</dt><dd>{t(bookingStatusLabel(selectedAppointment.bookingStatus))}</dd></div>
@@ -652,6 +700,11 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
               <div><dt>{t("Duration")}</dt><dd>{formatAppointmentPrice(selectedAppointment.duration, language)} {t("min")}</dd></div>
               <div><dt>{t("Notes")}</dt><dd>{selectedAppointment.notes || t("No notes provided.")}</dd></div>
             </dl>
+            {!(["completed", "cancelled", "rejected"].includes(selectedAppointment.bookingStatus)) && <form className="appointment-reschedule" onSubmit={(event) => { event.preventDefault(); if (appointmentDateDraft) updateAppointment(selectedAppointment, { appointmentAt: new Date(appointmentDateDraft).toISOString() }); }}>
+              <label htmlFor="appointment-reschedule-time">{t("Set agreed appointment date and time")}</label>
+              <div><input id="appointment-reschedule-time" type="datetime-local" step="300" min={nextFiveMinuteLocal()} value={appointmentDateDraft} onChange={(event) => setAppointmentDateDraft(event.target.value)} required /><button type="submit" className="status-action" disabled={busy || !appointmentDateDraft}>{t("Save appointment time")}</button></div>
+              <small>{t("The customer preference remains recorded separately. Save here to change the salon-agreed appointment time.")}</small>
+            </form>}
             <div className="appointment-dialog-services">{selectedAppointment.services.map(service => <div key={service.productId}><span>{service.title}</span><strong>{formatAppointmentPrice(service.price, language)} {t("EGP")}</strong></div>)}</div>
             <div className="appointment-dialog-totals"><span>{t("Total")} <strong>{formatAppointmentPrice(selectedAppointment.total, language)} {t("EGP")}</strong></span><span>{t("Deposit")} <strong>{formatAppointmentPrice(selectedAppointment.deposit, language)} {t("EGP")}</strong></span></div>
             <div className="appointment-dialog-actions">

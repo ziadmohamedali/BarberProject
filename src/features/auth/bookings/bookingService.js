@@ -41,7 +41,7 @@ export async function createBooking(booking) {
     body: {
       p_customer_name: booking.customer.name,
       p_whatsapp: booking.customer.whatsapp,
-      p_email: booking.customer.email,
+      p_email: booking.customer.email || "",
       p_product_ids: productIds,
     },
   });
@@ -65,6 +65,7 @@ function fromAppointmentRow(row) {
     total: Number(row.total_price),
     duration: Number(row.duration_minutes),
     appointmentAt: row.appointment_at,
+    preferredAppointmentAt: row.preferred_appointment_at,
     notes: row.notes || "",
     deposit: Number(row.deposit_amount),
     depositStatus: row.deposit_status,
@@ -87,6 +88,7 @@ function fromPublicAppointment(row) {
     total: Number(row.total_price),
     duration: Number(row.duration_minutes),
     appointmentAt: row.appointment_at,
+    preferredAppointmentAt: row.preferred_appointment_at,
     deposit: Number(row.deposit_amount),
     depositStatus: row.deposit_status,
     bookingStatus: row.booking_status,
@@ -107,11 +109,12 @@ export async function createAppointment(appointment) {
     body: {
       p_customer_name: appointment.customer.name,
       p_whatsapp: appointment.customer.whatsapp,
-      p_email: appointment.customer.email,
+      p_email: appointment.customer.email || "",
       p_product_ids: productIds,
       p_notes: appointment.notes,
       p_idempotency_key: appointment.idempotencyKey,
       p_confirmation_token: appointment.confirmationToken,
+      p_preferred_appointment_at: appointment.appointmentAt,
     },
   });
   if (!row?.reference || !Array.isArray(row.services)) {
@@ -139,13 +142,21 @@ export async function getAppointments() {
   if (!isSupabaseConfigured) return [];
   const rows = await supabaseRequest(
     "appointments",
-    `select=${encodeURIComponent("id,booking_reference,customer_name,whatsapp,email,service_ids,services,total_price,duration_minutes,appointment_at,notes,deposit_amount,deposit_status,booking_status,created_at,updated_at")}&order=${encodeURIComponent("created_at.desc")}`
+    `select=${encodeURIComponent("id,booking_reference,customer_name,whatsapp,email,service_ids,services,total_price,duration_minutes,appointment_at,preferred_appointment_at,notes,deposit_amount,deposit_status,booking_status,created_at,updated_at")}&order=${encodeURIComponent("created_at.desc")}`
   );
   return (rows || []).map(fromAppointmentRow);
 }
 
 export async function updateAppointment(id, changes) {
   if (!isSupabaseConfigured) throw new Error("Supabase is not configured.");
+  if (Object.prototype.hasOwnProperty.call(changes, "appointmentAt")) {
+    const result = await supabaseRequest("rpc/set_hadad_appointment_time", "", {
+      method: "POST",
+      body: { p_appointment_id: id, p_appointment_at: changes.appointmentAt },
+    });
+    if (!result?.id) throw new Error("Appointment was not found or could not be rescheduled.");
+    return fromAppointmentRow(result);
+  }
   const result = await supabaseRequest("rpc/update_hadad_appointment", "", {
     method: "POST",
     body: {

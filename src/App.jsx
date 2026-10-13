@@ -4,10 +4,12 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import { isSupabaseConfigured } from "./lib/supabase";
 import { createAppointment, getAppointmentErrorMessage, getAppointments, getBookings, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
 import { emptyContactSettings, getContactSettings, saveContactSettings } from "./features/auth/contactSettings/contactSettingsService";
+import { defaultHomeSettings, getHomeSettings, saveHomeSettings } from "./features/auth/homeSettings/homeSettingsService";
 import { createProduct, deleteProduct, deleteUnusedProductImages, getProducts, updateProduct, uploadProductImage } from "./features/auth/products/productService";
 import sampleProducts from "./features/auth/products/productData";
 import { LanguageContext, useLanguage } from "./lib/i18n";
 import { useLanguageState } from "./i18n";
+import { uploadStorageImage } from "./lib/supabase";
 import useAuth from "./features/auth/useAuth";
 
 function AppContent() {
@@ -25,6 +27,7 @@ function AppContent() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [products, setProducts] = useState(() => isSupabaseConfigured ? [] : sampleProducts);
   const [contactSettings, setContactSettings] = useState(emptyContactSettings);
+  const [homeSettings, setHomeSettings] = useState(defaultHomeSettings);
   const [bookings, setBookings] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -60,9 +63,10 @@ function AppContent() {
     setDataLoading(true);
     setPageError("");
     try {
-      const [nextProducts, nextContactSettings] = await Promise.all([getProducts(), getContactSettings()]);
+      const [nextProducts, nextContactSettings, nextHomeSettings] = await Promise.all([getProducts(), getContactSettings(), getHomeSettings()]);
       setProducts(nextProducts);
       setContactSettings(nextContactSettings);
+      setHomeSettings(nextHomeSettings);
     } catch (error) {
       setPageError(t(error.message || "Could not load services."));
     } finally {
@@ -79,8 +83,9 @@ function AppContent() {
         getBookings(),
         getAppointments(),
         getContactSettings(),
+        getHomeSettings(),
       ]);
-      const setters = [setProducts, setBookings, setAppointments, setContactSettings];
+      const setters = [setProducts, setBookings, setAppointments, setContactSettings, setHomeSettings];
       results.forEach((result, index) => {
         if (result.status === "fulfilled") setters[index](result.value);
       });
@@ -146,6 +151,12 @@ function AppContent() {
     return updated;
   };
 
+  const handleSaveHomeSettings = async (settings) => {
+    const updated = await saveHomeSettings(settings);
+    setHomeSettings(updated);
+    return updated;
+  };
+
   const handleLogout = async () => {
     await logout();
     setBookings([]);
@@ -177,6 +188,7 @@ function AppContent() {
         bookings={bookings}
         appointments={appointments}
         contactSettings={contactSettings}
+        homeSettings={homeSettings}
         onCreateProduct={handleCreateProduct}
         onUploadProductImage={uploadProductImage}
         onDeleteUnusedProductImages={deleteUnusedProductImages}
@@ -186,6 +198,8 @@ function AppContent() {
         onUpdateBooking={handleUpdateBooking}
         onUpdateAppointment={handleUpdateAppointment}
         onSaveContactSettings={handleSaveContactSettings}
+        onSaveHomeSettings={handleSaveHomeSettings}
+        onUploadHomeImage={uploadStorageImage}
         onChangeOwnerPassword={updatePassword}
         onBackToShop={() => navigate("/")}
         onLogout={handleLogout}
@@ -203,6 +217,7 @@ function AppContent() {
         onToggleTheme={toggleTheme}
         products={products}
         contactSettings={contactSettings}
+        homeSettings={homeSettings}
         onBookingCreated={handleCreateBooking}
         onOpenOwnerLogin={() => setLoginOpen(true)}
         onCloseOwnerLogin={() => setLoginOpen(false)}
