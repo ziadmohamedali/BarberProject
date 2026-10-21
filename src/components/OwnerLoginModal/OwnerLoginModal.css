@@ -94,7 +94,7 @@
 
 .owner-login-error {
   margin: 0;
-  color: #a12e2e;
+  color: var(--danger);
   font-size: 13px;
 }
 

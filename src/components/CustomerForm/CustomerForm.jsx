@@ -321,7 +321,7 @@ function CustomerForm({ selectedProducts, onSuccess, onBack }) {
           </div>
           <div className="checkout-deposit-note">
             <span className="checkout-info-mark" aria-hidden="true">i</span>
-            <p>{t("The deposit is arranged after we confirm availability. Our team will send payment instructions through WhatsApp; payment is verified by HADAD.")}</p>
+            <p>{t("The deposit is arranged after we confirm availability. Our team will send payment instructions through WhatsApp; payment is verified by Mohamed Hadad.")}</p>
           </div>
         </aside>
       </div>

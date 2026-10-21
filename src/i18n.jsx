@@ -129,8 +129,8 @@ const translations = {
   "Dark": "داكن",
   "Switch to White theme": "التبديل إلى المظهر الفاتح",
   "Switch to dark theme": "التبديل إلى المظهر الداكن",
-  "HADAD — Barber Shop": "حداد — صالون حلاقة",
-  "Discover Hadad Barber Shop haircuts and grooming packages. Request your next service in a few easy steps.": "اكتشف قصّات الشعر وباقات العناية في صالون حداد. اطلب خدمتك القادمة بخطوات سهلة.",
+  "Mohamed Hadad | Barber": "محمد حداد | حلاقة",
+  "Discover Mohamed Hadad Barber Shop haircuts and grooming packages. Request your next service in a few easy steps.": "اكتشف قصّات الشعر وباقات العناية في صالون محمد حداد. اطلب خدمتك القادمة بخطوات سهلة.",
   "Checking owner access…": "جارٍ التحقق من صلاحية المالك…",
   "Loading…": "جارٍ التحميل…",
   "Loading services…": "جارٍ تحميل الخدمات…",
@@ -216,8 +216,8 @@ const translations = {
   "mark this appointment as completed": "تحديد هذا الموعد كمكتمل",
   "cancel this appointment": "إلغاء هذا الموعد",
   "Are you sure you want to {action} for {name} ({reference})?": "هل أنت متأكد من {action} للعميل {name} (رقم الحجز {reference})؟",
-  "Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.": "مرحبًا {name}، نتواصل معك من حداد بخصوص طلبك {reference}. يرجى الرد هنا لتأكيد التوفر وترتيب زيارتك.",
-  "Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.": "مرحبًا {name}، تمت الموافقة على طلبك {reference} لدى حداد. لتأكيد الموعد يلزم عربون بقيمة ٥٠ ج.م. يرجى الرد هنا للحصول على تعليمات الدفع عبر إنستا باي أو فودافون كاش. سيتحقق فريقنا من استلام العربون.",
+  "Hello {name}, this is Mohamed Hadad contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.": "مرحبًا {name}، نتواصل معك من محمد حداد بخصوص طلبك {reference}. يرجى الرد هنا لتأكيد التوفر وترتيب زيارتك.",
+  "Hello {name}, your Mohamed Hadad request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.": "مرحبًا {name}، تمت الموافقة على طلبك {reference} لدى محمد حداد. لتأكيد الموعد يلزم عربون بقيمة ٥٠ ج.م. يرجى الرد هنا للحصول على تعليمات الدفع عبر إنستا باي أو فودافون كاش. سيتحقق فريقنا من استلام العربون.",
   "Verify the deposit before confirming.": "تحقق من العربون قبل تأكيد الموعد.",
   "Request received": "تم استلام الطلب",
   "Select at least one service.": "اختر خدمة واحدة على الأقل.",
@@ -229,7 +229,7 @@ const translations = {
   "WhatsApp": "واتساب",
   "Facebook": "فيسبوك",
   "Instagram": "إنستغرام",
-  "HADAD home": "الصفحة الرئيسية لحلاق حداد",
+  "Mohamed Hadad home": "الصفحة الرئيسية لمحمد حداد",
   "Main navigation": "التنقل الرئيسي",
   "Dashboard navigation": "التنقل في لوحة التحكم",
   "Open navigation": "فتح قائمة التنقل",
@@ -244,7 +244,7 @@ const translations = {
   "Portrait and service details": "صورة شخصية وتفاصيل الخدمات",
   "Services": "الخدمات",
   "Contact": "تواصل معنا",
-  "INDEPENDENT BARBER · OWNED AND RUN BY HADAD": "حلاق مستقل · بإدارة حداد",
+  "INDEPENDENT BARBER · OWNED AND RUN BY MOHAMED HADAD": "حلاق مستقل · بإدارة محمد حداد",
   "Sharp cuts.": "قصّات متقنة.",
   "Clean style.": "وأناقة مميزة.",
   "Premium barbering for gentlemen who want a sharp finish, a relaxed experience, and a look that lasts beyond the chair.": "خدمات حلاقة مميزة للرجال الباحثين عن إطلالة متقنة وتجربة مريحة ومظهر يدوم بعد مغادرة الكرسي.",
@@ -265,7 +265,7 @@ const translations = {
   "Contact Hadad": "تواصل مع حداد",
   "Call us": "اتصل بنا",
   "Visit our page ↗": "زُر صفحتنا ↗",
-  "© 2026 HADAD · Independently owned and operated by Ziad": "© ٢٠٢٦ حداد · بإدارة مستقلة من زياد",
+  "© 2026 Mohamed Hadad · Independently owned and operated by Ziad": "© ٢٠٢٦ محمد حداد · بإدارة مستقلة من زياد",
   "Request Received": "تم استلام طلبك",
   "Thank you{suffix}!": "شكرًا لك{suffix}!",
   "Hello Hadad,": "مرحبًا حداد،",
@@ -330,7 +330,7 @@ const translations = {
   "Submitting…": "جارٍ الإرسال…",
   "Confirm Request": "تأكيد الطلب",
   "Close login": "إغلاق تسجيل الدخول",
-  "HADAD OWNER ACCESS": "دخول مالك حداد",
+  "MOHAMED HADAD OWNER ACCESS": "دخول مالك محمد حداد",
   "Owner Login": "تسجيل دخول المالك",
   "Username": "اسم المستخدم",
   "Password": "كلمة المرور",
@@ -542,10 +542,10 @@ export function useLanguageState() {
     document.documentElement.lang = language;
     document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     document.documentElement.style.direction = language === "ar" ? "rtl" : "ltr";
-    document.title = t("HADAD — Barber Shop");
+    document.title = t("Mohamed Hadad | Barber");
     const description = document.querySelector('meta[name="description"]');
     if (description) {
-      description.content = t("Discover Hadad Barber Shop haircuts and grooming packages. Request your next service in a few easy steps.");
+      description.content = t("Discover Mohamed Hadad Barber Shop haircuts and grooming packages. Request your next service in a few easy steps.");
     }
     try {
       window.localStorage.setItem("hadad-language", language);

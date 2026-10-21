@@ -18,8 +18,7 @@ export default function ProductEditor({ draft, editing, error, busy, uploading, 
   return (
     <form id="product-editor" className="product-editor product-editor-premium" onSubmit={onSave}>
       <div className="product-editor-heading">
-        <div><span className="eyebrow">{t(editing ? "EDIT SERVICE" : "NEW SERVICE")}</span><h2>{t(editing ? "Edit product" : "Add a product")}</h2><p>{t("Manage the details customers see on the HADAD website.")}</p></div>
-        <button type="button" className="text-button" disabled={busy || uploading} onClick={onCancel}>{t("Cancel")}</button>
+        <div><span className="eyebrow">{t(editing ? "EDIT SERVICE" : "NEW SERVICE")}</span><h2>{t(editing ? "Edit product" : "Add a product")}</h2>        <p>{t("Manage the details customers see on the Mohamed Hadad website.")}</p></div>        <button type="button" className="text-button" disabled={busy || uploading} onClick={onCancel}>{t("Cancel")}</button>
       </div>
 
       <section className="product-image-manager" aria-label={t("Product images")}>

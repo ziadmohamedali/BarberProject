@@ -156,9 +156,9 @@ function NavigationSidebar({
   const content = (
     <>
       <div className="sidebar-brand-row">
-        <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={() => { closeDrawer(); onBrandClick?.(); }} aria-label={t("HADAD home")}>
-          <span className="sidebar-brand-full">HADAD<span>.</span></span>
-          <span className="sidebar-brand-compact" aria-hidden="true">H<span>.</span></span>
+        <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={() => { closeDrawer(); onBrandClick?.(); }} aria-label={t("Mohamed Hadad home")}>
+          <span className="sidebar-brand-full">MOHAMED HADAD<span>.</span></span>
+          <span className="sidebar-brand-compact" aria-hidden="true">MH<span>.</span></span>
         </a>
         {mobile ? (
           <button className="sidebar-icon-button sidebar-close" type="button" onClick={closeDrawer} aria-label={t("Close navigation")}>
@@ -202,8 +202,8 @@ function NavigationSidebar({
     <div className={`navigation-system ${variant}-navigation-system${collapsed ? " is-collapsed" : ""}${drawerOpen ? " drawer-open" : ""}`}>
       {variant === "public" && (
         <header className="public-horizontal-header">
-          <a className="public-header-brand" href="#top" onClick={onBrandClick} aria-label={t("HADAD home")}>
-            HADAD<span>.</span>
+          <a className="public-header-brand" href="#top" onClick={onBrandClick} aria-label={t("Mohamed Hadad home")}>
+            MOHAMED HADAD<span>.</span>
           </a>
           {renderNavigation("public-header-nav")}
           <div className="public-header-controls">
@@ -219,7 +219,7 @@ function NavigationSidebar({
       )}
       {mobile && (
         <div className="mobile-navigation-bar">
-          <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={onBrandClick} aria-label={t("HADAD home")}>HADAD<span>.</span></a>
+          <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={onBrandClick} aria-label={t("Mohamed Hadad home")}>MOHAMED HADAD<span>.</span></a>
           <button ref={menuButtonRef} className="mobile-menu-button" type="button" aria-label={t("Open navigation")} aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
             <NavigationIcon name="menu" />
           </button>

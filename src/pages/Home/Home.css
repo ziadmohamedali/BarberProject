@@ -79,7 +79,7 @@
 
 .hero-actions a:first-child {
   background: var(--accent);
-  color: #161412;
+  color: var(--button-text);
 }
 
 .secondary-link {
@@ -130,10 +130,10 @@
   width: min(100%, 520px);
   box-sizing: border-box;
   padding: 18px;
-  border: 1px solid rgba(32,32,30,.08);
-  background: linear-gradient(135deg, #1e1c1a, #292623 40%, #2f2a25);
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(28, 28, 28, 1), rgba(41, 41, 41, 0.96) 48%, rgba(17, 17, 17, 1));
   border-radius: 26px;
-  box-shadow: 0 24px 70px rgba(30, 24, 20, .14);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
 .hero-photo-card img {
@@ -347,6 +347,29 @@
   font-size: 13px;
 }
 
+.developer-signature {
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.developer-signature a {
+  color: var(--accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color .16s ease;
+}
+
+.developer-signature a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.developer-signature a:focus-visible {
+  outline-offset: 3px;
+}
+
 @media (max-width: 900px) {
   .hero {
     grid-template-columns: 1fr;
@@ -531,6 +554,11 @@
     flex-basis: 100%;
     text-align: center;
     font-size: 11px;
+  }
+
+  .developer-signature {
+    flex-basis: 100%;
+    text-align: center;
   }
 }
 

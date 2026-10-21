@@ -43,7 +43,7 @@ function OwnerLoginModal({ isOpen, onClose, onLogin }) {
     <div className="owner-login-overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="owner-login-modal" role="dialog" aria-modal="true" aria-labelledby="owner-login-title">
         <button className="owner-login-close" type="button" onClick={onClose} aria-label={t("Close login")}>×</button>
-        <span className="eyebrow">{t("HADAD OWNER ACCESS")}</span>
+        <span className="eyebrow">{t("MOHAMED HADAD OWNER ACCESS")}</span>
         <h2 id="owner-login-title">{t("Owner Login")}</h2>
         <form onSubmit={handleSubmit}>
           <label>{t("Username")}<input type="text" autoComplete="username" placeholder="MohamedHadad" required value={username} onChange={(event) => setUsername(event.target.value)} /></label>

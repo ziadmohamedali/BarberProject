@@ -7,48 +7,48 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   color-scheme: dark;
-  --ink: #f3eee7;
-  --muted: #b4ada4;
-  --paper: #171615;
-  --accent: #d0a06e;
-  --line: #393632;
-  --card: #211f1c;
-  --surface: #211f1c;
-  --surface-muted: #292622;
-  --header-bg: #11100f;
-  --header-text: #f8f4ef;
-  --subtle-bg: rgba(255,255,255,.06);
-  --button-bg: #d0a06e;
-  --button-text: #171615;
-  --status-bg: #39342d;
-  --status-text: #d0c4b3;
-  --status-success-bg: #27382c;
-  --status-success-text: #a7d0ac;
-  --danger: #f19a91;
-  --danger-bg: #3a211f;
+  --ink: #F2F4F7;
+  --muted: #9298A1;
+  --paper: #111111;
+  --accent: #BFC3C8;
+  --line: #383C42;
+  --card: #1C1C1C;
+  --surface: #1C1C1C;
+  --surface-muted: #292929;
+  --header-bg: #111111;
+  --header-text: #F2F4F7;
+  --subtle-bg: rgba(191, 195, 200, 0.08);
+  --button-bg: #F2F4F7;
+  --button-text: #111111;
+  --status-bg: #292929;
+  --status-text: #BFC3C8;
+  --status-success-bg: #1E2A2C;
+  --status-success-text: #C7D7D9;
+  --danger: #E7A9A4;
+  --danger-bg: #2B1F20;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --ink: #20201e;
-  --muted: #6e6962;
-  --paper: #f5f1ea;
-  --accent: #b77a48;
-  --line: #ded5cb;
-  --card: #fffdf9;
-  --surface: #fffdf9;
-  --surface-muted: #eee8df;
-  --header-bg: #eee9e2;
-  --header-text: #171614;
-  --subtle-bg: rgba(255,255,255,.72);
-  --button-bg: #20201e;
-  --button-text: #fff;
-  --status-bg: #eeeae4;
-  --status-text: #69645d;
-  --status-success-bg: #e8efe8;
-  --status-success-text: #47654b;
-  --danger: #a12e2e;
-  --danger-bg: #fff0ed;
+  --ink: #181B20;
+  --muted: #5F6870;
+  --paper: #F4F5F6;
+  --accent: #636B72;
+  --line: #D8DBDE;
+  --card: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-muted: #EEF1F3;
+  --header-bg: #F1F3F4;
+  --header-text: #111111;
+  --subtle-bg: rgba(17, 17, 17, 0.04);
+  --button-bg: #111111;
+  --button-text: #F2F4F7;
+  --status-bg: #EEF1F3;
+  --status-text: #4C535A;
+  --status-success-bg: #E7F1F1;
+  --status-success-text: #2C4C4E;
+  --danger: #B84540;
+  --danger-bg: #F8E8E7;
 }
 
 * {
@@ -88,12 +88,12 @@ a {
 }
 
 ::selection {
-  background: #d8b48c;
-  color: #171615;
+  background: var(--accent);
+  color: var(--button-text);
 }
 
 :focus-visible {
-  outline: 3px solid #bd8750;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -123,8 +123,8 @@ a {
   display: inline-block;
   margin: 20px 8px 0;
   padding: 15px 24px;
-  background: #20201e;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -133,5 +133,5 @@ a {
 }
 
 .success-whatsapp-link:hover {
-  background: #4b3a2d;
+  filter: brightness(1.08);
 }

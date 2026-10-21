@@ -141,7 +141,7 @@
 }
 
 .contact-field input[aria-invalid="true"] {
-  border-color: var(--danger, #a12e2e);
+  border-color: var(--danger);
 }
 
 .contact-field-error,
@@ -153,7 +153,7 @@
 }
 
 .contact-field-error {
-  color: var(--danger, #a12e2e);
+  color: var(--danger);
 }
 
 .contact-field-hint {

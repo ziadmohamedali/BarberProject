@@ -30,7 +30,7 @@ function ProductCard({
       <div className="product-card-image">
         {product.picture && !imageFailed
           ? <img src={product.picture} alt={product.title} loading="lazy" decoding="async" onError={() => setImageFailed(true)} />
-          : <div className="product-image-placeholder" role="img" aria-label={t("No image available")}>HADAD</div>}
+          : <div className="product-image-placeholder" role="img" aria-label={t("No image available")}>MOHAMED HADAD</div>}
 
         {isSelected && (
           <span className="selected-badge">

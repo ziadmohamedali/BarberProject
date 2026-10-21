@@ -59,7 +59,7 @@ function ProductModal({
         <div className="modal-image-section">
           {activeImage
             ? <img className="modal-main-image" src={activeImage} alt={product.title} />
-            : <div className="modal-image-placeholder" role="img" aria-label={t("No image available")}>HADAD</div>}
+            : <div className="modal-image-placeholder" role="img" aria-label={t("No image available")}>MOHAMED HADAD</div>}
 
           {availableGallery.length > 1 && (
               <div className="thumbnail-list">

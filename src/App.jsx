@@ -171,11 +171,11 @@ function AppContent() {
   };
 
   if (path === "/dashboard" && authLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Checking owner access…")}</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Checking owner access…")}</p></div></main>;
   }
 
   if (path === "/dashboard" && ownerAuthenticated && dataLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Loading…")}</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Loading…")}</p></div></main>;
   }
 
   if (path === "/dashboard" && ownerAuthenticated) {

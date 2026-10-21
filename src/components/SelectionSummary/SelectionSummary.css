@@ -52,7 +52,7 @@
 
 .selection-minimum-note {
   margin: 14px 0 0;
-  color: #a12e2e;
+  color: var(--danger);
   font-size: 13px;
 }
 
