@@ -414,19 +414,11 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
     selectedAppointment?.appointmentAt && `${t("Current appointment time:")} ${formatAppointmentDate(selectedAppointment.appointmentAt, language)}`,
   ].filter(Boolean).join("\n");
   const selectedWhatsAppText = selectedAppointment?.bookingStatus === "awaiting_payment"
-<<<<<<< HEAD
-    ? `${t("Hello {name}, your HADAD request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
-      name: selectedAppointment.customer.name,
-      reference: selectedAppointment.reference,
-    })}${selectedAppointmentContext}`
-    : selectedAppointment && `${t("Hello {name}, this is HADAD contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
-=======
     ? `${t("Hello {name}, your Mohamed Hadad request {reference} has been accepted. To confirm the appointment, a 50 EGP deposit is required. Please reply here for InstaPay or Vodafone Cash payment instructions. The deposit will be verified by our team.", {
       name: selectedAppointment.customer.name,
       reference: selectedAppointment.reference,
     })}${selectedAppointmentContext}`
     : selectedAppointment && `${t("Hello {name}, this is Mohamed Hadad contacting you about your request {reference}. Please reply here so we can confirm availability and arrange your visit.", {
->>>>>>> e8a3f08 (Add footer signature component with LinkedIn link)
       name: selectedAppointment.customer.name,
       reference: selectedAppointment.reference,
     })}${selectedAppointmentContext}`;

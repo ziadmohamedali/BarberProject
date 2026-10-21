@@ -188,19 +188,11 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
       ? `20${whatsappDigits.slice(1)}`
       : whatsappDigits;
   const whatsappHref = whatsappNumber
-<<<<<<< HEAD
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage || t("Hello Hadad, I’d like to ask about your services."))}`
-    : "";
-
-  if (confirmationLoading) {
-    return <main className="success-screen"><div className="success-content"><span>HADAD</span><p>{t("Verifying your appointmentâ€¦")}</p></div></main>;
-=======
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage || t("Hello Mohamed Hadad, I’d like to ask about your services."))}`
     : "";
 
   if (confirmationLoading) {
     return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Verifying your appointmentâ€¦")}</p></div></main>;
->>>>>>> e8a3f08 (Add footer signature component with LinkedIn link)
   }
 
   if (confirmationError) {
@@ -234,11 +226,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
         <main className="success-screen">
         <div className="success-content">
           <div className="success-icon">âœ“</div>
-<<<<<<< HEAD
-          <span>HADAD</span>
-=======
           <span>MOHAMED HADAD</span>
->>>>>>> e8a3f08 (Add footer signature component with LinkedIn link)
           <h1>{t("Request Received")}</h1>
           <p className="success-greeting">{t("Thank you{suffix}!", { suffix: submittedBooking.customerName ? `${language === "ar" ? "، " : ", "}${submittedBooking.customerName}` : "" })}</p>
           <div className="appointment-confirmation-details">
@@ -276,11 +264,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
       <main>
       <section className="hero" id="top">
         <div className="hero-content" id="about">
-<<<<<<< HEAD
-          <span className="eyebrow">{t("INDEPENDENT BARBER · OWNED AND RUN BY HADAD")}</span>
-=======
           <span className="eyebrow">{t("INDEPENDENT BARBER · OWNED AND RUN BY MOHAMED HADAD")}</span>
->>>>>>> e8a3f08 (Add footer signature component with LinkedIn link)
           <h1>{(language === "ar" ? (homeSettings?.headingAr || "قصة مميزة.\nأناقة تدوم.") : (homeSettings?.headingEn || "Sharp cuts.\nClean style.")).split("\n").map((line, index, lines) => <span key={`${index}-${line}`}>{line}{index < lines.length - 1 && <br />}</span>)}</h1>
           <p>{language === "ar" ? homeSettings?.descriptionAr : homeSettings?.descriptionEn || t("Premium barbering for gentlemen who want a sharp finish, a relaxed experience, and a look that lasts beyond the chair.")}</p>
           <div className="hero-actions">
@@ -366,17 +350,12 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
       </section>
 
       <footer className="site-footer">
-<<<<<<< HEAD
-        <a className="brand-mark" href="#top">HADAD<span>.</span></a>
-        <span dir="ltr">&copy; 2026 HADAD &middot; Independently owned and operated by Ziad</span>
-=======
         <a className="brand-mark" href="#top">MOHAMED HADAD<span>.</span></a>
         <span dir="ltr">&copy; 2026 Mohamed Hadad &middot; Independently owned and operated by Mohamed Hadad</span>
         <small className="developer-signature">
           Designed &amp; built by{" "}
           <a href="https://www.linkedin.com/in/ziadmali/" target="_blank" rel="noopener noreferrer">Ziad Mohamed</a>
         </small>
->>>>>>> e8a3f08 (Add footer signature component with LinkedIn link)
       </footer>
       </main>
       {whatsappHref && <FloatingWhatsApp href={whatsappHref} label={t("Chat with us on WhatsApp")} />}
