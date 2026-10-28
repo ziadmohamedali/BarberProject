@@ -30,7 +30,7 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
-function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onBookingCreated, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, onOwnerLogin }) {
+function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onRefreshWorkingHours, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, loginError, onOwnerLogin }) {
   const { language, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("haircut");
   const [selectedProducts, setSelectedProducts] = useState(() => {
@@ -153,31 +153,12 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
     setTimeout(() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" }), 0);
   };
 
-  const handleBookingSuccess = async (booking) => {
-    const request = {
-      ...booking,
-      products: selectedProducts.map(({ id, title, price }) => ({ productId: id, title, price })),
-    };
-    const savedAppointment = await onBookingCreated(request);
-    try {
-      window.sessionStorage.setItem(`hadad-confirmation-${savedAppointment.reference}`, booking.confirmationToken);
-      window.sessionStorage.removeItem("hadad-pending-appointment");
-      window.sessionStorage.removeItem("hadad-checkout-open");
-    } catch {
-      // The server-confirmed result can still be shown for this page view.
-    }
-    window.history.replaceState({}, "", `/?booking=${encodeURIComponent(savedAppointment.reference)}`);
-    setSubmittedBooking(savedAppointment);
-    setBookingComplete(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const whatsappMessage = submittedBooking && [
     t("Hello Mohamed Hadad,"),
     "",
     `${t("Booking reference:")} ${submittedBooking.reference}`,
     `${t("Name:")} ${submittedBooking.customerName}`,
-    ...submittedBooking.services.map((service) => `${service.title} â€” ${service.price} ${t("EGP")}`),
+    ...submittedBooking.services.map((service) => `${service.title} — ${service.price} ${t("EGP")}`),
     ...(submittedBooking.preferredAppointmentAt ? [`${t("Requested appointment time:")} ${new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(submittedBooking.preferredAppointmentAt))}`, t("This time is a preference, not a confirmation.")] : []),
     `${t("Deposit:")} ${submittedBooking.deposit} ${t("EGP")}`,
   ].join("\n");
@@ -192,7 +173,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
     : "";
 
   if (confirmationLoading) {
-    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Verifying your appointmentâ€¦")}</p></div></main>;
+    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Verifying your appointment…")}</p></div></main>;
   }
 
   if (confirmationError) {
@@ -221,11 +202,16 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
           onToggleTheme={onToggleTheme}
           showThemeToggle={!loginOpen}
         />
-        <OwnerLoginModal isOpen={loginOpen} onClose={onCloseOwnerLogin} onLogin={onOwnerLogin} />
+        <OwnerLoginModal
+          isOpen={loginOpen}
+          onClose={onCloseOwnerLogin}
+          onLogin={onOwnerLogin}
+          loginError={loginError}
+        />
         <div className="public-main">
         <main className="success-screen">
         <div className="success-content">
-          <div className="success-icon">âœ“</div>
+          <div className="success-icon">✓</div>
           <span>MOHAMED HADAD</span>
           <h1>{t("Request Received")}</h1>
           <p className="success-greeting">{t("Thank you{suffix}!", { suffix: submittedBooking.customerName ? `${language === "ar" ? "، " : ", "}${submittedBooking.customerName}` : "" })}</p>
@@ -234,7 +220,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
             <p><strong>{t("Service:")}</strong> {submittedBooking.services.map((service) => service.title).join(", ")}</p>
             {submittedBooking.preferredAppointmentAt && <p><strong>{t("Requested appointment time:")}</strong> {new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(submittedBooking.preferredAppointmentAt))} · {t("preference, not confirmation")}</p>}
             <p><strong>{t("Total:")}</strong> {submittedBooking.total} {t("EGP")}</p>
-            <p><strong>{t("Deposit:")}</strong> {submittedBooking.deposit} {t("EGP")} Â· {t(depositStatusLabel(submittedBooking.depositStatus))}</p>
+            <p><strong>{t("Deposit:")}</strong> {submittedBooking.deposit} {t("EGP")} · {t(depositStatusLabel(submittedBooking.depositStatus))}</p>
           </div>
           <p><strong>{t("Booking status")}:</strong> {t(bookingStatusLabel(submittedBooking.bookingStatus))}</p>
           <p>{t("Your request has been received. We will contact you through WhatsApp to confirm availability and provide deposit payment instructions. No payment is required now.")}</p>
@@ -259,7 +245,12 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
         onToggleTheme={onToggleTheme}
         showThemeToggle={!loginOpen}
       />
-      <OwnerLoginModal isOpen={loginOpen} onClose={onCloseOwnerLogin} onLogin={onOwnerLogin} />
+      <OwnerLoginModal
+        isOpen={loginOpen}
+        onClose={onCloseOwnerLogin}
+        onLogin={onOwnerLogin}
+        loginError={loginError}
+      />
       <div className="public-main">
       <main>
       <section className="hero" id="top">
@@ -287,9 +278,15 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
         </div>
       </section>
 
-      {(language === "ar" ? homeSettings?.rulesAr : homeSettings?.rulesEn) && <aside className="booking-rules-note"><span aria-hidden="true">i</span><p>{language === "ar" ? homeSettings.rulesAr : homeSettings.rulesEn}</p></aside>}
+      <aside className="booking-rules-note">
+        <span aria-hidden="true">i</span>
+        <p>{language === "ar" ? (homeSettings.rulesAr || "المواعيد المختارة تفضيلات وليست تأكيدًا للحجز. يرجى التواصل معنا لتأكيد التوفر.") : (homeSettings.rulesEn || "Appointment times are preferences, not confirmed bookings. Please contact us to confirm availability.")}{" "}{t("Shop hours: {opening} – {closing}.", {
+          opening: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.openingTime.slice(0, 2)), Number(homeSettings.openingTime.slice(3, 5)))),
+          closing: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.closingTime.slice(0, 2)), Number(homeSettings.closingTime.slice(3, 5)))),
+        })}</p>
+      </aside>
 
-      <section className="products-section" id="products">
+      {!showCustomerForm && <section className="products-section" id="products">
         <div className="section-heading center">
           <span>{t("Our Services")}</span>
           <h2>{t("Choose Your Style")}</h2>
@@ -304,7 +301,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
         ) : (
           <p className="empty-services">{t(activeCategory === "haircut" ? "No haircuts are available right now." : "No packages are available right now.")}</p>
         )}
-      </section>
+      </section>}
 
       {openedProduct && (
         <ProductModal
@@ -317,7 +314,7 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
       )}
 
       <div id="customer-form" className="checkout-view" hidden={!showCustomerForm}>
-        <CustomerForm selectedProducts={selectedProducts} onSuccess={handleBookingSuccess} onBack={handleBackToServices} />
+        <CustomerForm selectedProducts={selectedProducts} whatsappNumber={whatsappNumber} onBack={handleBackToServices} workingHours={homeSettings} onRefreshWorkingHours={onRefreshWorkingHours} />
       </div>
       <div className="checkout-view" hidden={showCustomerForm}>
         <SelectionSummary

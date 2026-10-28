@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import { calculateBookingTotals } from "../../features/auth/bookings/bookingCalculations";
 import { useLanguage } from "../../lib/i18n";
 import "./SelectionSummary.css";
@@ -8,7 +9,7 @@ function SelectionSummary({
   onContinue,
 }) {
   const { t } = useLanguage();
-  const { total, deposit } = calculateBookingTotals(selectedProducts);
+  const { total } = calculateBookingTotals(selectedProducts);
 
   if (selectedProducts.length === 0) {
     return null;
@@ -41,11 +42,9 @@ function SelectionSummary({
         <strong>{total} {t("EGP")}</strong>
       </div>
 
-      {total < deposit && <p className="selection-minimum-note">{t("Add services worth at least {deposit} EGP to continue.", { deposit })}</p>}
       <button
         className="continue-button"
         onClick={onContinue}
-        disabled={total < deposit}
       >
         {t("Continue")}
       </button>

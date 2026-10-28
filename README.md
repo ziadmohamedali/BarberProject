@@ -4,33 +4,19 @@ A one-owner barber service catalog and booking app built with React, Vite, and S
 
 ## Supabase setup
 
-1. Copy `.env.example` to `.env.local` and fill in the project URL and publishable (or legacy anon) key. Find both in the Supabase project dashboard under **Project Settings → API Keys**. Use the project URL shown in **Project Settings → API**. Neither value is a service-role/secret key.
-2. In the SQL Editor for the intended project, inspect the current `public.products`, `public.bookings`, `public.hadad_contact_settings`, `storage.buckets`, and policies. The live `products` table and public `product-images` bucket are reused; do not run the legacy `001_hadad_schema.sql`, `002_hadad_security.sql`, or `setup.sql` against the prepared project.
-3. Review and run `supabase/migrations/003_hadad_live_integration.sql` if it has not already been applied. It adds the owner-check function, bookings table/RPC, and required product/storage policies without dropping policies or recreating the existing products table or storage bucket.
-4. Review and run `supabase/migrations/004_hadad_contact_settings.sql`. It adds the single-row public contact/payment settings table, permits public reads, and restricts updates to an authenticated HADAD owner. It does not modify products, bookings, or Storage.
-5. Inspect the live schema and policies, then review and run `supabase/migrations/005_hadad_appointments.sql`. If `public.appointments` already exists, stop and reconcile its schema before applying; the migration never deletes appointment rows. It creates the appointment table and owner-only read policy. Customers may submit a preferred date and time; the owner confirms the agreed time separately.
-6. Run `supabase/migrations/006_fix_hadad_appointment_rpc.sql` after migration 005. It reconciles the RPC signature and grants for public booking, preserves the booking reference, idempotency, active-product and trusted-price checks, and tells PostgREST to reload its schema cache.
-7. Run `supabase/migrations/007_hadad_deposit_workflow.sql` after migration 006. It maps prior request/deposit states to the owner-review workflow, requires a verified deposit before appointment confirmation, and allows refunds only after cancellation or rejection.
-8. Review and apply migrations `008_unified_customer_accounts.sql`, `009_appointment_feedback_compat.sql`, `010_track_booking_confirmation.sql`, `011_live_home_and_booking_preferences.sql`, and `012_booking_preference_window.sql` in order when not already applied. The legacy 008 filename does not mean customer accounts are enabled; it adds owner-only notes/archive support. Migration 011 adds editable bilingual homepage settings and a separate, unconfirmed customer time preference; 012 enforces the 30-day preference limit in the database. Do not run these automatically from the app; see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for the complete order and security details.
-9. The single owner Auth account uses the static sign-in email `mohamedhadad@hadad.invalid` (it does not need to be a real mailbox). At the dashboard, enter `MohamedHadad` as the username; the app maps it to this Auth account. Set or change the password directly in Supabase Auth; do not put the password into SQL, source files, or browser configuration.
-10. Grant the owner claim to that exact Auth account from the SQL Editor and verify exactly one account was changed:
+For a **new, empty project**, first confirm the Supabase organization, project name, region, and plan. Copy `.env.example` to `.env.local` and set the new project's URL and publishable/anon key from **Project Settings → API**. These are public frontend configuration values, not service-role secrets.
 
-   ```sql
-   update auth.users
-   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
-     || '{"hadad_owner": true}'::jsonb
-   where email = 'mohamedhadad@hadad.invalid';
-   ```
+Review the SQL before applying it in the new project's SQL Editor. Run `supabase/migrations/000_hadad_fresh_project_products.sql`, then migrations `003_hadad_live_integration.sql` through `012_hadad_contact_settings_owner_policy.sql` in numeric order, skipping missing numbers. Do **not** run legacy `001_hadad_schema.sql` or `002_hadad_security.sql` on a fresh project: they create the older, incompatible product model. Do not run the fresh-project bootstrap against the old project. See [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for feature/security details and review steps.
 
-11. Set Supabase Auth’s minimum password length to at least 8 characters. The dashboard password form requires the current password and matching valid new passwords; Supabase Auth stores the password hash and the update persists across sessions and deployments.
+The dashboard uses a frontend-only login with credentials defined in `src/lib/dashboardAuth.js`, and its private-looking route is configured there. This is only a convenience gate: credentials and session state are visible to visitors and do not provide security.
 
-The app uses Supabase Auth plus Postgres and Storage RLS as its authorization boundary. Never add write policies for all `anon` or `authenticated` users, and never put the service-role/secret key in frontend code or any `VITE_` variable. Public visitors can read active products, public contact/payment details, and public bucket images; only a session with server-issued `app_metadata.hadad_owner=true` can manage products, bookings, contact settings, or product images.
+Never put a service-role/secret key in frontend code or any `VITE_` variable. Public visitors can read active products, public contact/payment details, and public bucket images. Do not change RLS policies to allow public owner-only writes.
 
 ## Catalog and owner dashboard
 
-The public catalog reads active haircuts and packages from `public.products`. The owner dashboard can create, edit, reorder, hide, and delete either category. Every product supports a main image and up to four additional gallery images. Product changes and uploaded images persist in Supabase.
+The public catalog reads active haircuts and packages from `public.products`. The dashboard includes product, Contact Settings, and Live Home editors. Supabase RLS still requires an authenticated owner for writes, while this frontend-only login does not authenticate with Supabase; therefore dashboard saves are expected to be rejected until a secure server-side authorization flow is provided. Do not weaken RLS to make them work.
 
-The owner dashboard's **Contact Settings** section manages the public WhatsApp/contact phone numbers, Instagram and Facebook URLs, and InstaPay payment details. Public pages read these values from `public.hadad_contact_settings`; optional contact links and payment instructions are hidden when their values are empty. **Live Home** manages bilingual hero content, its image, and optional booking rules in `public.hadad_home_settings`. WhatsApp links open a prefilled message for the customer or owner to review; they do not send automatically.
+The owner dashboard's **Contact Settings** section manages the public WhatsApp/contact phone numbers, Instagram and Facebook URLs, and InstaPay payment details. Public pages read these values from `public.hadad_contact_settings`; optional contact links and payment instructions are hidden when their values are empty. **Live Home** manages bilingual hero content, its image, booking warning messages, and shop opening/closing hours. The warning text and times are stored together in the existing `rules_en` and `rules_ar` text columns of `public.hadad_home_settings`; legacy plain-text warnings remain readable and use the default hours until saved from Live Home. The public homepage displays the saved warning and formatted hours. Checkout offers 30-minute time preferences only during those hours and rechecks the latest settings before opening WhatsApp; these are preferences, not confirmed availability. The public checkout prepares a prefilled WhatsApp message and does not save customer details or appointment requests. Customers review and send the message themselves.
 
 ## Development
 
@@ -39,9 +25,9 @@ npm install
 npm run dev
 ```
 
-For Vercel, use `npm run build` as the build command and `dist` as the output directory. The included `vercel.json` sends client-side routes such as `/dashboard` to the app entry point, so directly visiting or refreshing those routes works.
+For Vercel, use `npm run build` as the build command and `dist` as the output directory. The included `vercel.json` sends client-side routes to the app entry point, so directly visiting or refreshing the private dashboard route works.
 
-Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the Vercel project's Environment Variables for each required deployment environment, then redeploy after adding or changing them. Vite embeds these values at build time. Without them, the deployed app stays in preview mode and bookings/dashboard data will not work. These are browser-visible public connection settings; do not configure a service-role or secret key for this Vite frontend.
+Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the Vercel project's Environment Variables for each required deployment environment, then redeploy after adding or changing them. Never configure a service-role/secret key in the Vite frontend. Without the Supabase variables, the deployed app stays in preview mode. The checkout's default working hours remain 12:00 PM–1:00 AM.
 
 Build and lint:
 

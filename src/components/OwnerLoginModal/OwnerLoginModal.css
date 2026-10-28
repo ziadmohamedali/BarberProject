@@ -52,6 +52,31 @@
   font: inherit;
 }
 
+.owner-login-password-field {
+  display: flex;
+  align-items: stretch;
+}
+
+.owner-login-password-field input {
+  min-width: 0;
+}
+
+.owner-login-password-toggle {
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-inline-start: 0;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.owner-login-password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .owner-login-modal .primary-button {
   width: 100%;
 }

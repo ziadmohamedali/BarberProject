@@ -78,8 +78,11 @@ function ContactSettings({ contactSettings, onSave }) {
       setForm(updated);
       setSavedForm(updated);
       setSaved(true);
-    } catch {
-      setError(t("Contact settings could not be saved. Please try again."));
+    } catch (saveError) {
+      const message = saveError instanceof Error
+        ? `${saveError.message}${saveError.status ? ` (HTTP ${saveError.status}${saveError.code ? `, ${saveError.code}` : ""})` : ""}`
+        : "Contact settings could not be saved. Please try again.";
+      setError(t(message));
     } finally {
       setSaving(false);
     }
@@ -163,7 +166,7 @@ function ContactSettings({ contactSettings, onSave }) {
           </section>
 
           {error && <p className="editor-error contact-settings-message" role="alert">{error}</p>}
-          {saved && <p className="password-saved contact-settings-message" role="status">{t("Contact settings saved.")}</p>}
+          {saved && <p className="contact-settings-success contact-settings-message" role="status">{t("Contact settings saved.")}</p>}
           <div className="contact-settings-actions">
             <button className="primary-button" type="submit" disabled={saving || !dirty}>
               {saving ? t("Saving…") : t("Save Changes")}

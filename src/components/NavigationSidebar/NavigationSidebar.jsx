@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types -- The app uses JavaScript components without PropTypes. */
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../lib/i18n";
+import { DASHBOARD_ROUTE } from "../../lib/dashboardAuth";
 import useScrollLock from "../../hooks/useScrollLock";
 import "./NavigationSidebar.css";
 
@@ -26,6 +27,7 @@ function NavigationIcon({ name }) {
     dashboard: <><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></>,
     requests: <><path d="M7 3h10l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M17 3v5h4M9 12h6M9 16h6" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z" transform="translate(-1 -1) scale(1.08)" /></>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
     add: <><path d="M12 5v14M5 12h14" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
     close: <><path d="m6 6 12 12M18 6 6 18" /></>,
@@ -156,7 +158,7 @@ function NavigationSidebar({
   const content = (
     <>
       <div className="sidebar-brand-row">
-        <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={() => { closeDrawer(); onBrandClick?.(); }} aria-label={t("Mohamed Hadad home")}>
+        <a className="sidebar-brand" href={variant === "dashboard" ? DASHBOARD_ROUTE : "#top"} onClick={() => { closeDrawer(); onBrandClick?.(); }} aria-label={t("Mohamed Hadad home")}>
           <span className="sidebar-brand-full">MOHAMED HADAD<span>.</span></span>
           <span className="sidebar-brand-compact" aria-hidden="true">MH<span>.</span></span>
         </a>
@@ -219,7 +221,7 @@ function NavigationSidebar({
       )}
       {mobile && (
         <div className="mobile-navigation-bar">
-          <a className="sidebar-brand" href={variant === "dashboard" ? "/dashboard" : "#top"} onClick={onBrandClick} aria-label={t("Mohamed Hadad home")}>MOHAMED HADAD<span>.</span></a>
+          <a className="sidebar-brand" href={variant === "dashboard" ? DASHBOARD_ROUTE : "#top"} onClick={onBrandClick} aria-label={t("Mohamed Hadad home")}>MOHAMED HADAD<span>.</span></a>
           <button ref={menuButtonRef} className="mobile-menu-button" type="button" aria-label={t("Open navigation")} aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
             <NavigationIcon name="menu" />
           </button>

@@ -380,59 +380,6 @@
   font-size: 13px;
 }
 
-.account-security {
-  margin: 0 0 25px;
-  padding: 18px 20px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-}
-
-.account-security summary {
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.password-change-form {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 18px;
-}
-
-.password-change-form label {
-  display: grid;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.password-change-form input {
-  width: 100%;
-  min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid var(--line);
-  background: var(--surface-muted);
-  color: var(--ink);
-}
-
-.password-change-form .editor-error,
-.password-saved {
-  grid-column: 1 / -1;
-  margin: 0;
-}
-
-.password-saved {
-  color: var(--status-success-text);
-  font-size: 13px;
-}
-
-.password-change-form button {
-  justify-self: start;
-}
-
 .editor-hint {
   margin: 0 0 12px;
   color: var(--muted);
@@ -655,15 +602,6 @@
 
   .managed-product {
     flex-wrap: wrap;
-  }
-
-  .password-change-form {
-    grid-template-columns: 1fr;
-  }
-
-  .password-change-form .editor-error,
-  .password-saved {
-    grid-column: auto;
   }
 
   .managed-product-info {

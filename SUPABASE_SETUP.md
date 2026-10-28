@@ -5,15 +5,21 @@
 Set the Supabase **Project URL** and **public anon/publishable key** in the root `.env.local`:
 
 ```dotenv
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_URL=https://deoxyanmxqyvnjesmrsu.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 ```
 
-Only the public URL and public anon/publishable key belong in frontend configuration. Never place a service-role key, database password, or other secret in a `VITE_` variable.
+Never place a service-role key, database password, or private credential in a `VITE_` variable.
 
-## 2. Apply migrations to the prepared project
+## 2. Dashboard login limitation
 
-For the existing HADAD project, inspect the live schema, RLS policies, and migration history in Supabase before running SQL. Apply reviewed migrations in order if they are not already present:
+The current dashboard uses a frontend-only username and password in `src/lib/dashboardAuth.js`. These values are included in the JavaScript bundle and can be inspected or bypassed; the route and session flag are not security controls. This login does not use Supabase Auth and does not create an owner session.
+
+Supabase RLS remains enabled and requires an authenticated owner for protected writes. Public reads may work, but product, contact-settings, and homepage-settings changes cannot be saved by this frontend-only session. Do not add anonymous write policies. A secure server-side authorization mechanism is required before protected writes can work.
+
+## 3. Apply migrations
+
+For a new, empty project, first review and apply `supabase/migrations/000_hadad_fresh_project_products.sql`. It creates the current `products` schema and public image bucket used by migration 003. Then apply reviewed migrations in order:
 
 1. `supabase/migrations/003_hadad_live_integration.sql`
 2. `supabase/migrations/004_hadad_contact_settings.sql`
@@ -22,19 +28,21 @@ For the existing HADAD project, inspect the live schema, RLS policies, and migra
 5. `supabase/migrations/007_hadad_deposit_workflow.sql`
 6. `supabase/migrations/008_unified_customer_accounts.sql` (despite its legacy filename, this adds owner-only private appointment notes/archive support; it does not create customer accounts)
 7. `supabase/migrations/009_appointment_feedback_compat.sql`
-8. `supabase/migrations/010_track_booking_confirmation.sql`
-9. `supabase/migrations/011_live_home_and_booking_preferences.sql`
-10. `supabase/migrations/012_booking_preference_window.sql`
+8. `supabase/migrations/010_hadad_live_home.sql`
+9. `supabase/migrations/011_appointment_preference_owner_edit.sql`
+10. `supabase/migrations/012_hadad_contact_settings_owner_policy.sql`
+
+Do not run the legacy `001_hadad_schema.sql` or `002_hadad_security.sql` on a fresh project; their product schema uses obsolete column names. For an existing project, inspect its schema, RLS policies, Storage resources, and migration history first. Do not run the fresh-project bootstrap against it. Apply only migrations that are missing and compatible with the inspected schema.
 
 Do not run the legacy `001_hadad_schema.sql`, `002_hadad_security.sql`, or `setup.sql` against the prepared project. Migration 005 preserves table data but replaces policies on `public.appointments` with owner-only reads, revokes direct public writes, and exposes narrowly scoped confirmation/status RPCs. Migration 006 reconciles the booking RPC to the current frontend signature and requests a PostgREST schema-cache reload. If an `appointments` table already exists, stop and review its schema and data before applying migration 005; `create table if not exists` does not reconcile a different existing schema.
 
-The appointment RPC accepts active product IDs, validates prices against trusted `public.products` data, snapshots those services, and fixes the deposit at 50 EGP. Customers may submit a preferred date and time within 30 days; it is stored separately from `appointment_at`, which remains the owner-agreed time. A preference is not a confirmed slot. Migrations 011 and 012 extend the token-protected booking RPC while preserving idempotency and owner-only access to appointment rows; migration 012 also enforces the 30-day limit in the database.
+The appointment RPC accepts active product IDs, validates prices against trusted `public.products` data, snapshots those services, and fixes the deposit at 50 EGP. Customers may submit a preferred date and time within 30 days; it is stored separately from `appointment_at`, which remains the owner-agreed time. A preference is not a confirmed slot. Migration 011 extends the token-protected booking RPC while preserving idempotency and owner-only access to appointment rows, and enforces the 30-day limit in the database.
 
 Migration 007 moves requests to `pending_review` with deposit status `not_requested`. The owner can accept and request the deposit, moving both to `awaiting_payment`; only after the owner marks receipt `payment_verified` can the request be moved to `confirmed`. A verified deposit can be marked `refunded` only after cancellation or rejection. The database validates these transitions; the owner verifies payment manually.
 
 Public users can create requests and retrieve a limited confirmation only with the high-entropy token held by the submitting browser. They cannot list, read directly, update, or delete customer records. Only the server-claimed HADAD owner can read customer data and change appointment or deposit statuses through the owner RPC. Customers see no payment instructions and are explicitly told that payment is not due during initial submission. The owner sends InstaPay or Vodafone Cash payment instructions directly through WhatsApp after reviewing and accepting a request.
 
-Migration 011 also creates the single-row `hadad_home_settings` table. Public reads expose only homepage copy and image URL; updates require the server-claimed owner. Hero images reuse the existing public `product-images` bucket and its owner upload policies; no additional bucket or Storage policy is required. Do not apply migrations automatically from the app. Review the live schema and migration history first, then run only migrations that have not already been applied, in the order above.
+Migration 010 creates the single-row `hadad_home_settings` table. Public reads expose homepage content and settings; updates require the server-claimed owner. Its `rules_en` and `rules_ar` columns were originally seeded with explanatory booking text, not working hours. The app preserves legacy plain-text values as the public warning and uses default hours until the owner saves from Live Home. New saves keep the bilingual warning text and separately typed opening/closing times together in these existing text columns; the homepage displays the saved warning alongside the formatted hours. No schema migration is needed for this representation. The migration inserts its defaults only when the singleton row does not already exist, so applying it does not replace existing values. Hero images reuse the existing public `product-images` bucket and its owner upload policies; no additional bucket or Storage policy is required. Do not apply migrations automatically from the app. Review the live schema and migration history first, then run only migrations that have not already been applied, in the order above.
 
 The legacy product and image policies from migration 003 remain: visitors can read active products and public bucket images; only an authenticated owner can manage products or upload, replace, and delete product images.
 
@@ -53,20 +61,13 @@ where n.nspname = 'public'
   and p.proname = 'create_hadad_appointment';
 ```
 
-## 3. Create and authorize the owner account
+## 4. Supabase owner authorization
 
-The dashboard uses Supabase Auth; a browser-side static password is not an authorization mechanism. Create the owner's email/password user in **Supabase Dashboard → Authentication → Users**. In the SQL Editor, mark that exact account as the owner (replace the email):
+Do not grant anonymous write access. Products, contact settings, homepage settings, bookings, appointments, and Storage mutations remain protected by the RLS policies that require an authenticated user with the owner claim. The frontend-only dashboard login does not satisfy this requirement, so protected dashboard edits will be rejected by Supabase.
 
-```sql
-update auth.users
-set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
-  || '{"hadad_owner": true}'::jsonb
-where email = 'owner@example.com';
-```
+Migration 012 reconciles all Contact Settings policies and table grants, preserving public reads while allowing updates only to authenticated users with the server-managed owner claim. Review the live schema and migration history before applying migrations.
 
-Confirm the update affected exactly the intended owner account. Sign out and back in after changing the claim so the user's JWT includes `app_metadata.hadad_owner = true`. The RLS policies check this server-issued app metadata; user-editable profile metadata is not used for authorization. Do not expose Supabase admin credentials in the app.
-
-## 4. Product images and legacy booking behavior
+## 5. Product images and legacy booking behavior
 
 The owner dashboard uses file inputs to upload a main image and optional package gallery images to Storage, then saves their public URLs with the product. The database also validates required text, integer prices, supported categories, and image-count limits.
 

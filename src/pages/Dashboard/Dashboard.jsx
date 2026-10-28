@@ -94,7 +94,7 @@ const emptyProduct = (category) => ({
   category, duration: "", active: true, gallery: [], sortOrder: 0,
 });
 
-function Dashboard({ theme, onToggleTheme, products, bookings, appointments = [], contactSettings, homeSettings, onCreateProduct, onUploadProductImage, onDeleteUnusedProductImages, onUpdateProduct, onDeleteProduct, onReorderProducts, onUpdateBooking, onUpdateAppointment, onSaveContactSettings, onSaveHomeSettings, onUploadHomeImage, onChangeOwnerPassword, onBackToShop, onLogout, onReload }) {
+function Dashboard({ theme, onToggleTheme, products, bookings, appointments = [], contactSettings, homeSettings, onCreateProduct, onUploadProductImage, onDeleteUnusedProductImages, onUpdateProduct, onDeleteProduct, onReorderProducts, onUpdateBooking, onUpdateAppointment, onSaveContactSettings, onSaveHomeSettings, onUploadHomeImage, onBackToShop, onLogout, onReload }) {
   const { language, t } = useLanguage();
   const [section, setSection] = useState("products");
   const [category, setCategory] = useState("haircut");
@@ -106,10 +106,6 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
   const [uploadProgress, setUploadProgress] = useState(0);
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirmation: "" });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [passwordBusy, setPasswordBusy] = useState(false);
   const persistedImageUrls = useRef(new Set());
   const productSubmittingRef = useRef(false);
   const imageUploadRef = useRef(false);
@@ -435,36 +431,6 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
     requestAnimationFrame(() => document.getElementById("product-editor")?.scrollIntoView({ behavior: "smooth" }));
   };
 
-  const changePassword = async (event) => {
-    event.preventDefault();
-    setPasswordError("");
-    setPasswordSaved(false);
-
-    if (passwordForm.next.length < 8) {
-      setPasswordError(t("Use at least 8 characters for the new password."));
-      return;
-    }
-    if (passwordForm.next !== passwordForm.confirmation) {
-      setPasswordError(t("The new passwords do not match."));
-      return;
-    }
-    if (passwordForm.current === passwordForm.next) {
-      setPasswordError(t("Choose a new password different from your current one."));
-      return;
-    }
-
-    setPasswordBusy(true);
-    try {
-      await onChangeOwnerPassword(passwordForm.current, passwordForm.next);
-      setPasswordForm({ current: "", next: "", confirmation: "" });
-      setPasswordSaved(true);
-    } catch (error) {
-      setPasswordError(t(error.message || "The password could not be changed. Please try again."));
-    } finally {
-      setPasswordBusy(false);
-    }
-  };
-
   const dashboardNavigation = [
     { id: "products", label: "Products", icon: "services" },
     { id: "appointments", label: "Appointments", icon: "book" },
@@ -498,18 +464,6 @@ function Dashboard({ theme, onToggleTheme, products, bookings, appointments = []
         </section>
 
         {actionError && <p className="editor-error" role="alert">{t(actionError)} <button type="button" className="text-button" onClick={onReload}>{t("Reload data")}</button></p>}
-
-        <details className="account-security">
-          <summary>{t("Change owner password")}</summary>
-          <form className="password-change-form" onSubmit={changePassword}>
-            <label>{t("Current password")}<input type="password" autoComplete="current-password" required value={passwordForm.current} onChange={(event) => setPasswordForm((current) => ({ ...current, current: event.target.value }))} /></label>
-            <label>{t("New password")}<input type="password" autoComplete="new-password" minLength={8} required value={passwordForm.next} onChange={(event) => setPasswordForm((current) => ({ ...current, next: event.target.value }))} /></label>
-            <label>{t("Confirm new password")}<input type="password" autoComplete="new-password" minLength={8} required value={passwordForm.confirmation} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmation: event.target.value }))} /></label>
-            {passwordError && <p className="editor-error" role="alert">{t(passwordError)}</p>}
-            {passwordSaved && <p className="password-saved" role="status">{t("Password updated successfully.")}</p>}
-            <button className="primary-button" type="submit" disabled={passwordBusy}>{passwordBusy ? t("Updatingâ€¦") : t("Update password")}</button>
-          </form>
-        </details>
 
         {section === "products" ? (
           <>

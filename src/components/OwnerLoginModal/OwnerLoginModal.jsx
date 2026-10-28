@@ -31,9 +31,8 @@ function OwnerLoginModal({ isOpen, onClose, onLogin }) {
     try {
       await onLogin(username.trim(), password);
       setPassword("");
-      onClose();
-    } catch {
-      setError(t("Could not verify owner access. Check your username, password, and owner authorization."));
+    } catch (submitError) {
+      setError(t(submitError instanceof Error ? submitError.message : "Username or password is incorrect."));
     } finally {
       setSubmitting(false);
     }

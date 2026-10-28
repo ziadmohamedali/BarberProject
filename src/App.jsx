@@ -2,20 +2,27 @@ import { useCallback, useEffect, useState } from "react";
 import Home from "./pages/Home/Home";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import { isSupabaseConfigured } from "./lib/supabase";
-import { createAppointment, getAppointmentErrorMessage, getAppointments, getBookings, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
+import { createAppointment, getAppointmentErrorMessage, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
 import { emptyContactSettings, getContactSettings, saveContactSettings } from "./features/auth/contactSettings/contactSettingsService";
-import { defaultHomeSettings, getHomeSettings, saveHomeSettings } from "./features/auth/homeSettings/homeSettingsService";
+import { defaultHomeSettings, getHomeSettings, getWorkingHours, saveHomeSettings } from "./features/auth/homeSettings/homeSettingsService";
 import { createProduct, deleteProduct, deleteUnusedProductImages, getProducts, updateProduct, uploadProductImage } from "./features/auth/products/productService";
 import sampleProducts from "./features/auth/products/productData";
 import { LanguageContext, useLanguage } from "./lib/i18n";
 import { useLanguageState } from "./i18n";
 import { uploadStorageImage } from "./lib/supabase";
-import useAuth from "./features/auth/useAuth";
+import {
+  DASHBOARD_ROUTE,
+  OWNER_LOGIN_ROUTE,
+  OWNER_PASSWORD,
+  OWNER_USERNAME,
+  endDashboardSession,
+  hasDashboardSession,
+  startDashboardSession,
+} from "./lib/dashboardAuth";
 
 function AppContent() {
   const { t } = useLanguage();
-  const { user, loading: authLoading, login, logout, updatePassword } = useAuth();
-  const ownerAuthenticated = Boolean(user);
+  const [dashboardAuthenticated, setDashboardAuthenticated] = useState(hasDashboardSession);
   const [theme, setTheme] = useState(() => {
     try {
       return window.localStorage.getItem("hadad-theme") === "light" ? "light" : "dark";
@@ -56,8 +63,20 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && path === "/dashboard" && !ownerAuthenticated) navigate("/");
-  }, [path, ownerAuthenticated, authLoading, navigate]);
+    if (path === "/dashboard") {
+      navigate(DASHBOARD_ROUTE);
+    } else if (path === DASHBOARD_ROUTE && !dashboardAuthenticated) {
+      setLoginOpen(true);
+      navigate(OWNER_LOGIN_ROUTE);
+    } else if (path === OWNER_LOGIN_ROUTE && dashboardAuthenticated) {
+      setLoginOpen(false);
+      navigate(DASHBOARD_ROUTE);
+    } else if (path === OWNER_LOGIN_ROUTE) {
+      setLoginOpen(true);
+    } else {
+      setLoginOpen(false);
+    }
+  }, [path, dashboardAuthenticated, navigate]);
 
   const loadPublicProducts = useCallback(async () => {
     setDataLoading(true);
@@ -80,12 +99,10 @@ function AppContent() {
     try {
       const results = await Promise.allSettled([
         getProducts({ owner: true }),
-        getBookings(),
-        getAppointments(),
         getContactSettings(),
         getHomeSettings(),
       ]);
-      const setters = [setProducts, setBookings, setAppointments, setContactSettings, setHomeSettings];
+      const setters = [setProducts, setContactSettings, setHomeSettings];
       results.forEach((result, index) => {
         if (result.status === "fulfilled") setters[index](result.value);
       });
@@ -104,9 +121,9 @@ function AppContent() {
       setProducts(sampleProducts);
       return;
     }
-    if (path === "/dashboard" && ownerAuthenticated) loadDashboard();
-    else if (path !== "/dashboard") loadPublicProducts();
-  }, [path, ownerAuthenticated, loadDashboard, loadPublicProducts]);
+    if (path === DASHBOARD_ROUTE && dashboardAuthenticated) loadDashboard();
+    else if (path !== DASHBOARD_ROUTE) loadPublicProducts();
+  }, [path, dashboardAuthenticated, loadDashboard, loadPublicProducts]);
 
   const handleCreateBooking = async (appointment) => createAppointment(appointment);
 
@@ -158,27 +175,28 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
-    await logout();
+    endDashboardSession();
+    setDashboardAuthenticated(false);
     setBookings([]);
     setAppointments([]);
     navigate("/");
   };
 
   const handleOwnerLogin = async (username, password) => {
-    await login(username, password);
+    if (username.trim() !== OWNER_USERNAME || password !== OWNER_PASSWORD) {
+      throw new Error("Username or password is incorrect.");
+    }
+    startDashboardSession();
+    setDashboardAuthenticated(true);
     setLoginOpen(false);
-    navigate("/dashboard");
+    navigate(DASHBOARD_ROUTE);
   };
 
-  if (path === "/dashboard" && authLoading) {
-    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Checking owner access…")}</p></div></main>;
-  }
-
-  if (path === "/dashboard" && ownerAuthenticated && dataLoading) {
+  if (path === DASHBOARD_ROUTE && dashboardAuthenticated && dataLoading) {
     return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Loading…")}</p></div></main>;
   }
 
-  if (path === "/dashboard" && ownerAuthenticated) {
+  if (path === DASHBOARD_ROUTE && dashboardAuthenticated) {
     return <>
       {pageError && <div className="app-error" role="alert">{t(pageError)}</div>}
       <Dashboard
@@ -200,7 +218,6 @@ function AppContent() {
         onSaveContactSettings={handleSaveContactSettings}
         onSaveHomeSettings={handleSaveHomeSettings}
         onUploadHomeImage={uploadStorageImage}
-        onChangeOwnerPassword={updatePassword}
         onBackToShop={() => navigate("/")}
         onLogout={handleLogout}
         onReload={loadDashboard}
@@ -218,9 +235,16 @@ function AppContent() {
         products={products}
         contactSettings={contactSettings}
         homeSettings={homeSettings}
+        onRefreshWorkingHours={getWorkingHours}
         onBookingCreated={handleCreateBooking}
-        onOpenOwnerLogin={() => setLoginOpen(true)}
-        onCloseOwnerLogin={() => setLoginOpen(false)}
+        onOpenOwnerLogin={() => {
+          setLoginOpen(true);
+          navigate(OWNER_LOGIN_ROUTE);
+        }}
+        onCloseOwnerLogin={() => {
+          setLoginOpen(false);
+          if (path === OWNER_LOGIN_ROUTE) navigate("/");
+        }}
         loginOpen={loginOpen}
         onOwnerLogin={handleOwnerLogin}
       />
