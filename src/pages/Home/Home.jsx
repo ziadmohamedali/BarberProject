@@ -32,6 +32,7 @@ const depositStatusLabel = (status) => ({
 
 function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onRefreshWorkingHours, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, loginError, onOwnerLogin, onRequestPasswordReset, onSetNewPassword, recoveryMode }) {
   const { language, t } = useLanguage();
+  const workingHoursText = (language === "ar" ? homeSettings?.hoursTextAr : homeSettings?.hoursTextEn)?.trim();
   const [activeCategory, setActiveCategory] = useState("haircut");
   const [selectedProducts, setSelectedProducts] = useState(() => {
     try { return JSON.parse(window.sessionStorage.getItem("hadad-selected-products") || "[]"); } catch { return []; }
@@ -262,7 +263,6 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
       <section className="hero" id="top">
         <div className="hero-content" id="about">
           <span className="eyebrow">{t("INDEPENDENT BARBER · OWNED AND RUN BY MOHAMED HADAD")}</span>
-          <h1>{(language === "ar" ? (homeSettings?.headingAr || "قصة مميزة.\nأناقة تدوم.") : (homeSettings?.headingEn || "Sharp cuts.\nClean style.")).split("\n").map((line, index, lines) => <span key={`${index}-${line}`}>{line}{index < lines.length - 1 && <br />}</span>)}</h1>
           <p>{language === "ar" ? homeSettings?.descriptionAr : homeSettings?.descriptionEn || t("Premium barbering for gentlemen who want a sharp finish, a relaxed experience, and a look that lasts beyond the chair.")}</p>
           <div className="hero-actions">
             <a href="#products">{t("Book a service")}</a>
@@ -286,10 +286,12 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
 
       <aside className="booking-rules-note">
         <span aria-hidden="true">i</span>
-        <p>{language === "ar" ? (homeSettings.rulesAr || "المواعيد المختارة تفضيلات وليست تأكيدًا للحجز. يرجى التواصل معنا لتأكيد التوفر.") : (homeSettings.rulesEn || "Appointment times are preferences, not confirmed bookings. Please contact us to confirm availability.")}{" "}{t("Shop hours: {opening} – {closing}.", {
-          opening: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.openingTime.slice(0, 2)), Number(homeSettings.openingTime.slice(3, 5)))),
-          closing: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.closingTime.slice(0, 2)), Number(homeSettings.closingTime.slice(3, 5)))),
-        })}</p>
+        <p>{language === "ar" ? (homeSettings.rulesAr || "المواعيد المختارة تفضيلات وليست تأكيدًا للحجز. يرجى التواصل معنا لتأكيد التوفر.") : (homeSettings.rulesEn || "Appointment times are preferences, not confirmed bookings. Please contact us to confirm availability.")}{" "}{workingHoursText
+          ? <span className="booking-hours-text" dir="auto">{workingHoursText}</span>
+          : t("Shop hours: {opening} – {closing}.", {
+            opening: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.openingTime.slice(0, 2)), Number(homeSettings.openingTime.slice(3, 5)))),
+            closing: new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-EG", { hour: "numeric", minute: "2-digit" }).format(new Date(2024, 0, 1, Number(homeSettings.closingTime.slice(0, 2)), Number(homeSettings.closingTime.slice(3, 5)))),
+          })}</p>
       </aside>
 
       {!showCustomerForm && <section className="products-section" id="products">

@@ -4,10 +4,9 @@ import { useLanguage } from "../../lib/i18n";
 import "./LiveHome.css";
 
 const fields = [
-  // Headings are multi-line: the homepage renders each line break as its own line.
-  ["headingEn", "English hero heading", "textarea", 120, 2], ["headingAr", "Arabic hero heading", "textarea", 120, 2],
   ["descriptionEn", "English hero description", "textarea", 400], ["descriptionAr", "Arabic hero description", "textarea", 400],
   ["rulesEn", "English booking warning", "textarea", 400], ["rulesAr", "Arabic booking warning", "textarea", 400],
+  ["hoursTextAr", "Working hours (Arabic)", "text", 160], ["hoursTextEn", "Working hours (English)", "text", 160],
   ["openingTime", "Opening time", "time"], ["closingTime", "Closing time", "time"],
 ];
 
@@ -72,7 +71,7 @@ export default function LiveHome({ settings, onSave, onUploadImage, onDeleteImag
       <header className="live-home-heading"><div><span className="eyebrow">{t("PUBLIC WEBSITE")}</span><h2>{t("Live Home")}</h2><p>{t("Shape the first impression customers see on your homepage.")}</p></div><span className="live-home-status">{t("Bilingual content")}</span></header>
       <div className="live-home-layout">
         <section className="live-home-card"><div className="live-home-card-title"><span>01</span><div><h3>{t("Hero content")}</h3><p>{t("Keep the message short, clear, and welcoming.")}</p></div></div>
-          <div className="live-home-fields">{fields.slice(0, 4).map(([key, label, type, max, rows = 3]) => <label className="live-home-field" key={key}><span>{t(label)}</span>{type === "textarea" ? <textarea dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} rows={rows} value={draft[key]} onChange={(event) => update(key, event.target.value)} required /> : <input dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} value={draft[key]} onChange={(event) => update(key, event.target.value)} required />}</label>)}</div>
+          <div className="live-home-fields">{fields.slice(0, 2).map(([key, label, , max]) => <label className="live-home-field" key={key}><span>{t(label)}</span><textarea dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} rows={3} value={draft[key]} onChange={(event) => update(key, event.target.value)} required /></label>)}</div>
         </section>
         <section className="live-home-card live-home-image-card"><div className="live-home-card-title"><span>02</span><div><h3>{t("Hero image")}</h3><p>{t("A strong image gives the homepage its character.")}</p></div></div>
           <div className="live-home-image-preview">{draft.imageUrl ? <img src={draft.imageUrl} alt={t("Homepage hero preview")} /> : <div className="live-home-image-empty">{t("No custom image selected")}</div>}</div>
@@ -81,9 +80,11 @@ export default function LiveHome({ settings, onSave, onUploadImage, onDeleteImag
           <small>{t("JPEG, PNG, or WebP \u00b7 maximum 5 MB")}</small>
         </section>
         <section className="live-home-card live-home-rules-card"><div className="live-home-card-title"><span>03</span><div><h3>{t("Booking warning")}</h3><p>{t("This message appears on the public homepage with the shop hours.")}</p></div></div>
-          <div className="live-home-fields">{fields.slice(4, 6).map(([key, label, , max]) => <label className="live-home-field" key={key}><span>{t(label)}</span><textarea dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} rows={3} value={draft[key]} onChange={(event) => update(key, event.target.value)} required /></label>)}</div>
+          <div className="live-home-fields">{fields.slice(2, 4).map(([key, label, , max]) => <label className="live-home-field" key={key}><span>{t(label)}</span><textarea dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} rows={3} value={draft[key]} onChange={(event) => update(key, event.target.value)} required /></label>)}</div>
         </section>
-        <section className="live-home-card live-home-hours-card"><div className="live-home-card-title"><span>04</span><div><h3>{t("Shop working hours")}</h3><p>{t("Customers can only select 30-minute preferences within these hours. Availability is confirmed separately.")}</p></div></div>
+        <section className="live-home-card live-home-hours-card"><div className="live-home-card-title"><span>04</span><div><h3>{t("Shop working hours")}</h3><p>{t("Write the hours the way customers should read them. The homepage shows this text exactly as written.")}</p></div></div>
+          <div className="live-home-fields">{fields.slice(4, 6).map(([key, label, , max]) => <label className="live-home-field" key={key}><span>{t(label)}</span><input type="text" dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={max} placeholder={key.endsWith("Ar") ? "يوميًا من ١٢ ظهرًا حتى ١ بالليل" : "Daily from 12 PM to 1 AM"} value={draft[key]} onChange={(event) => update(key, event.target.value)} /></label>)}</div>
+          <p className="live-home-hours-note">{t("Booking slots: customers can pick 30-minute preferences between these times.")}</p>
           <div className="live-home-fields">{fields.slice(6).map(([key, label]) => <label className="live-home-field" key={key}><span>{t(label)}</span><input type="time" required value={draft[key]} onChange={(event) => update(key, event.target.value)} /></label>)}</div>
         </section>
       </div>

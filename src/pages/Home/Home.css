@@ -575,3 +575,4 @@
 .hero-photo-card{isolation:isolate;overflow:hidden}.hero-photo-card::before{content:"";position:absolute;z-index:-1;inset:12% -7% -7% 12%;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);border-radius:28px;opacity:.55}.hero-content h1{line-height:1.02;letter-spacing:-.035em}.hero-content>p{max-width:480px}.hero-actions a{transition:transform .18s ease,filter .18s ease}.hero-actions a:hover{transform:translateY(-2px);filter:brightness(1.06)}
 [dir="rtl"] .floating-whatsapp{right:max(20px,env(safe-area-inset-right));left:auto}
 @media(max-width:600px){.booking-rules-note{margin-block:10px 26px}}
+.booking-hours-text{display:inline-block;color:var(--ink);font-weight:600;unicode-bidi:isolate}
