@@ -123,6 +123,35 @@
   font-size: 13px;
 }
 
+.owner-login-hint,
+.owner-login-notice {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.owner-login-notice {
+  color: var(--ink);
+}
+
+.owner-login-link {
+  justify-self: center;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.owner-login-link:hover,
+.owner-login-link:focus-visible {
+  color: var(--ink);
+}
+
 @media (max-width: 480px) {
   .owner-login-modal {
     padding: 32px 24px;

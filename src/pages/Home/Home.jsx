@@ -30,7 +30,7 @@ const depositStatusLabel = (status) => ({
   refunded: "Refunded",
 }[status] || status);
 
-function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onRefreshWorkingHours, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, loginError, onOwnerLogin }) {
+function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, onRefreshWorkingHours, onOpenOwnerLogin, onCloseOwnerLogin, loginOpen, loginError, onOwnerLogin, onRequestPasswordReset, onSetNewPassword, recoveryMode }) {
   const { language, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("haircut");
   const [selectedProducts, setSelectedProducts] = useState(() => {
@@ -207,6 +207,9 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
           onClose={onCloseOwnerLogin}
           onLogin={onOwnerLogin}
           loginError={loginError}
+          onRequestPasswordReset={onRequestPasswordReset}
+          onSetNewPassword={onSetNewPassword}
+          recoveryMode={recoveryMode}
         />
         <div className="public-main">
         <main className="success-screen">
@@ -250,6 +253,9 @@ function Home({ theme, onToggleTheme, products, contactSettings, homeSettings, o
         onClose={onCloseOwnerLogin}
         onLogin={onOwnerLogin}
         loginError={loginError}
+        onRequestPasswordReset={onRequestPasswordReset}
+        onSetNewPassword={onSetNewPassword}
+        recoveryMode={recoveryMode}
       />
       <div className="public-main">
       <main>

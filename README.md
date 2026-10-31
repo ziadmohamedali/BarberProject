@@ -8,7 +8,7 @@ For a **new, empty project**, first confirm the Supabase organization, project n
 
 Review the SQL before applying it in the new project's SQL Editor. Run `supabase/migrations/000_hadad_fresh_project_products.sql`, then migrations `003_hadad_live_integration.sql` through `012_hadad_contact_settings_owner_policy.sql` in numeric order, skipping missing numbers. Do **not** run legacy `001_hadad_schema.sql` or `002_hadad_security.sql` on a fresh project: they create the older, incompatible product model. Do not run the fresh-project bootstrap against the old project. See [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for feature/security details and review steps.
 
-The dashboard signs in with Supabase Auth and only opens for accounts with the `hadad_owner` app-metadata claim; see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md#2-dashboard-owner-login) to create the owner account. The dashboard route is configured in `src/lib/dashboardAuth.js`.
+The dashboard signs in with Supabase Auth (email and password, with password recovery) and only opens for the owner account registered in `public.hadad_owners`; see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md#2-dashboard-owner-login) to create the owner account. The dashboard route is configured in `src/lib/dashboardAuth.js`.
 
 Never put a service-role/secret key in frontend code or any `VITE_` variable. Public visitors can read active products, public contact/payment details, and public bucket images. Do not change RLS policies to allow public owner-only writes.
 

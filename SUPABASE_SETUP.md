@@ -5,7 +5,7 @@
 Set the Supabase **Project URL** and **public anon/publishable key** in the root `.env.local`:
 
 ```dotenv
-VITE_SUPABASE_URL=https://deoxyanmxqyvnjesmrsu.supabase.co
+VITE_SUPABASE_URL=https://xjxcporjtskrwppsvcsp.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 ```
 
@@ -13,20 +13,14 @@ Never place a service-role key, database password, or private credential in a `V
 
 ## 2. Dashboard owner login
 
-The dashboard signs in with Supabase Auth (email and password). After sign-in the app calls `public.is_hadad_owner()` and only opens the dashboard when the account's JWT carries the owner claim. The session is kept in `sessionStorage` for the current tab and refreshed automatically.
+The dashboard signs in with Supabase Auth (email and password). After sign-in the app calls `public.is_hadad_owner()` and only opens the dashboard when the signed-in user's ID is listed in `public.hadad_owners` (migration 014). Other accounts are signed out again. The session persists in `localStorage` across browser restarts until the owner logs out, and is refreshed automatically. Visiting the dashboard route without an owner session redirects to `/owner-login`.
 
-Create the owner account once in the Supabase dashboard:
+**Password recovery.** *Forgot password?* on the login form emails a reset link. The link opens `/owner-login`, where the owner sets a new password (minimum 8 characters) and lands in the dashboard. For the link to return to the app, add each site origin under **Authentication → URL Configuration → Redirect URLs**, for example `http://localhost:5174/**` and the production domain followed by `/**`.
 
-1. **Authentication → Users → Add user**: create the owner with an email and a strong password, and tick *Auto Confirm User*. To keep signing in with the username `MohamedHadad`, use the email `mohamedhadad@hadad.invalid`; any other email can be typed directly into the login form.
-2. In the **SQL Editor**, grant the owner claim. It lives in `app_metadata`, which users cannot change themselves:
+Set up the owner once in the Supabase dashboard:
 
-   ```sql
-   update auth.users
-   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"hadad_owner": true}'::jsonb
-   where email = 'mohamedhadad@hadad.invalid';
-   ```
-
-3. Sign out and back in so the claim is included in the session token.
+1. **Authentication → Users**: the owner account is `mohamed7adad1@gmail.com`. If it has no password, use *Forgot password?* on the login form to set one; verifying the reset link also confirms the email address.
+2. Apply `supabase/migrations/014_hadad_owner_by_uid.sql`, which registers that account's user ID as the owner. To register a different account, insert its ID: `insert into public.hadad_owners (user_id) values ('<user id>');`
 
 Supabase RLS remains enabled and requires this authenticated owner for protected reads and writes. Do not add anonymous write policies.
 
@@ -44,6 +38,8 @@ For a new, empty project, first review and apply `supabase/migrations/000_hadad_
 8. `supabase/migrations/010_hadad_live_home.sql`
 9. `supabase/migrations/011_appointment_preference_owner_edit.sql`
 10. `supabase/migrations/012_hadad_contact_settings_owner_policy.sql`
+11. `supabase/migrations/013_hadad_owner_reads_product_images.sql` (lets the owner's image cleanup actually delete replaced files; Storage only deletes objects the caller can select)
+12. `supabase/migrations/014_hadad_owner_by_uid.sql` (identifies the owner by Auth user ID instead of an `app_metadata` claim)
 
 Do not run the legacy `001_hadad_schema.sql` or `002_hadad_security.sql` on a fresh project; their product schema uses obsolete column names. For an existing project, inspect its schema, RLS policies, Storage resources, and migration history first. Do not run the fresh-project bootstrap against it. Apply only migrations that are missing and compatible with the inspected schema.
 

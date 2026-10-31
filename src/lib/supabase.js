@@ -1,10 +1,12 @@
 const environment = import.meta.env || {};
 const configuredUrl = environment.VITE_SUPABASE_URL?.trim().replace(/\/$/, "");
 const supabaseAnonKey = environment.VITE_SUPABASE_ANON_KEY?.trim();
-const sessionStorageKey = "hadad-owner-session";
+const ownerSessionKey = "hadad-owner-session";
 let inMemorySession = null;
 
 try {
+  // Owner sessions used to live in tab-scoped storage; they now persist in localStorage.
+  window.sessionStorage.removeItem(ownerSessionKey);
   window.localStorage.removeItem("hadad-supabase-session");
   window.localStorage.removeItem("hadad-pending-appointment");
   window.localStorage.removeItem("hadad-bookings-v1");
@@ -30,15 +32,15 @@ const supabaseUrl = isValidSupabaseUrl(configuredUrl) ? configuredUrl : "";
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 function readSession() {
-  try { return JSON.parse(window.sessionStorage.getItem(sessionStorageKey) || "null"); }
+  try { return JSON.parse(window.localStorage.getItem(ownerSessionKey) || "null"); }
   catch { return inMemorySession; }
 }
 
 function saveSession(session) {
   try {
-    if (session) window.sessionStorage.setItem(sessionStorageKey, JSON.stringify(session));
-    else window.sessionStorage.removeItem(sessionStorageKey);
-  } catch { /* Auth remains available in memory only if tab storage is unavailable. */ }
+    if (session) window.localStorage.setItem(ownerSessionKey, JSON.stringify(session));
+    else window.localStorage.removeItem(ownerSessionKey);
+  } catch { /* Auth remains available in memory only if browser storage is unavailable. */ }
   inMemorySession = session || null;
 }
 
@@ -150,6 +152,33 @@ export const authApi = {
       body: { password },
       token: session.access_token,
     });
+  },
+  async requestPasswordReset(email, redirectTo) {
+    await request(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: "POST",
+      body: { email },
+      publicOnly: true,
+    });
+  },
+  // Supabase sends the recovery link back with the session in the URL fragment.
+  // Store that session, strip the fragment, and report whether this was a recovery visit.
+  consumeRecoveryRedirect() {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (!params.has("access_token") && !params.has("error_description")) return null;
+    window.history.replaceState({}, "", window.location.pathname + window.location.search);
+    if (params.get("error_description")) {
+      return { error: params.get("error_description").replace(/\+/g, " ") };
+    }
+    if (params.get("type") !== "recovery") return null;
+    const expiresIn = Number(params.get("expires_in") || 3600);
+    saveSession({
+      access_token: params.get("access_token"),
+      refresh_token: params.get("refresh_token"),
+      token_type: params.get("token_type") || "bearer",
+      expires_in: expiresIn,
+      expires_at: Number(params.get("expires_at")) || Math.floor(Date.now() / 1000) + expiresIn,
+    });
+    return { recovery: true };
   },
 };
 

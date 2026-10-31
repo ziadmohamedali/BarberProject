@@ -13,15 +13,23 @@ import { uploadStorageImage } from "./lib/supabase";
 import {
   DASHBOARD_ROUTE,
   OWNER_LOGIN_ROUTE,
+  consumePasswordRecovery,
+  requestOwnerPasswordReset,
   restoreOwnerSession,
+  setOwnerPassword,
   signInOwner,
   signOutOwner,
 } from "./lib/dashboardAuth";
 
+// Read once at startup: the recovery link's tokens are removed from the URL as they are stored.
+const initialRecovery = isSupabaseConfigured ? consumePasswordRecovery() : null;
+
 function AppContent() {
   const { t } = useLanguage();
   const [dashboardAuthenticated, setDashboardAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured && !initialRecovery?.recovery);
+  const [recoveryMode, setRecoveryMode] = useState(Boolean(initialRecovery?.recovery));
+  const [loginError, setLoginError] = useState(initialRecovery?.error || "");
   const [theme, setTheme] = useState(() => {
     try {
       return window.localStorage.getItem("hadad-theme") === "light" ? "light" : "dark";
@@ -62,7 +70,7 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || initialRecovery?.recovery) return;
     restoreOwnerSession()
       .then(setDashboardAuthenticated)
       .catch(() => setDashboardAuthenticated(false))
@@ -71,7 +79,10 @@ function AppContent() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (path === "/dashboard") {
+    if (recoveryMode) {
+      setLoginOpen(true);
+      if (path !== OWNER_LOGIN_ROUTE) navigate(OWNER_LOGIN_ROUTE);
+    } else if (path === "/dashboard") {
       navigate(DASHBOARD_ROUTE);
     } else if (path === DASHBOARD_ROUTE && !dashboardAuthenticated) {
       setLoginOpen(true);
@@ -84,7 +95,7 @@ function AppContent() {
     } else {
       setLoginOpen(false);
     }
-  }, [path, authLoading, dashboardAuthenticated, navigate]);
+  }, [path, authLoading, recoveryMode, dashboardAuthenticated, navigate]);
 
   const loadPublicProducts = useCallback(async () => {
     setDataLoading(true);
@@ -195,9 +206,18 @@ function AppContent() {
     }
   };
 
-  const handleOwnerLogin = async (username, password) => {
+  const handleOwnerLogin = async (email, password) => {
     if (!isSupabaseConfigured) throw new Error("Configure Supabase before signing in to the dashboard.");
-    await signInOwner(username, password);
+    await signInOwner(email, password);
+    setLoginError("");
+    setDashboardAuthenticated(true);
+    setLoginOpen(false);
+    navigate(DASHBOARD_ROUTE);
+  };
+
+  const handleSetNewPassword = async (password, confirmation) => {
+    await setOwnerPassword(password, confirmation);
+    setRecoveryMode(false);
     setDashboardAuthenticated(true);
     setLoginOpen(false);
     navigate(DASHBOARD_ROUTE);
@@ -258,10 +278,19 @@ function AppContent() {
         }}
         onCloseOwnerLogin={() => {
           setLoginOpen(false);
+          setLoginError("");
+          if (recoveryMode) {
+            setRecoveryMode(false);
+            signOutOwner().catch(() => {});
+          }
           if (path === OWNER_LOGIN_ROUTE) navigate("/");
         }}
         loginOpen={loginOpen}
+        loginError={loginError}
         onOwnerLogin={handleOwnerLogin}
+        onRequestPasswordReset={requestOwnerPasswordReset}
+        onSetNewPassword={handleSetNewPassword}
+        recoveryMode={recoveryMode}
       />
     )}
   </>;
