@@ -11,11 +11,24 @@ VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 
 Never place a service-role key, database password, or private credential in a `VITE_` variable.
 
-## 2. Dashboard login limitation
+## 2. Dashboard owner login
 
-The current dashboard uses a frontend-only username and password in `src/lib/dashboardAuth.js`. These values are included in the JavaScript bundle and can be inspected or bypassed; the route and session flag are not security controls. This login does not use Supabase Auth and does not create an owner session.
+The dashboard signs in with Supabase Auth (email and password). After sign-in the app calls `public.is_hadad_owner()` and only opens the dashboard when the account's JWT carries the owner claim. The session is kept in `sessionStorage` for the current tab and refreshed automatically.
 
-Supabase RLS remains enabled and requires an authenticated owner for protected writes. Public reads may work, but product, contact-settings, and homepage-settings changes cannot be saved by this frontend-only session. Do not add anonymous write policies. A secure server-side authorization mechanism is required before protected writes can work.
+Create the owner account once in the Supabase dashboard:
+
+1. **Authentication → Users → Add user**: create the owner with an email and a strong password, and tick *Auto Confirm User*. To keep signing in with the username `MohamedHadad`, use the email `mohamedhadad@hadad.invalid`; any other email can be typed directly into the login form.
+2. In the **SQL Editor**, grant the owner claim. It lives in `app_metadata`, which users cannot change themselves:
+
+   ```sql
+   update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"hadad_owner": true}'::jsonb
+   where email = 'mohamedhadad@hadad.invalid';
+   ```
+
+3. Sign out and back in so the claim is included in the session token.
+
+Supabase RLS remains enabled and requires this authenticated owner for protected reads and writes. Do not add anonymous write policies.
 
 ## 3. Apply migrations
 
@@ -63,7 +76,7 @@ where n.nspname = 'public'
 
 ## 4. Supabase owner authorization
 
-Do not grant anonymous write access. Products, contact settings, homepage settings, bookings, appointments, and Storage mutations remain protected by the RLS policies that require an authenticated user with the owner claim. The frontend-only dashboard login does not satisfy this requirement, so protected dashboard edits will be rejected by Supabase.
+Do not grant anonymous write access. Products, contact settings, homepage settings, bookings, appointments, and Storage mutations remain protected by the RLS policies that require an authenticated user with the owner claim. The dashboard login described in section 2 provides that owner session.
 
 Migration 012 reconciles all Contact Settings policies and table grants, preserving public reads while allowing updates only to authenticated users with the server-managed owner claim. Review the live schema and migration history before applying migrations.
 

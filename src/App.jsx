@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Home from "./pages/Home/Home";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import { isSupabaseConfigured } from "./lib/supabase";
-import { createAppointment, getAppointmentErrorMessage, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
+import { createAppointment, getAppointmentErrorMessage, getAppointments, getBookings, updateAppointment, updateBooking } from "./features/auth/bookings/bookingService";
 import { emptyContactSettings, getContactSettings, saveContactSettings } from "./features/auth/contactSettings/contactSettingsService";
 import { defaultHomeSettings, getHomeSettings, getWorkingHours, saveHomeSettings } from "./features/auth/homeSettings/homeSettingsService";
 import { createProduct, deleteProduct, deleteUnusedProductImages, getProducts, updateProduct, uploadProductImage } from "./features/auth/products/productService";
@@ -13,16 +13,15 @@ import { uploadStorageImage } from "./lib/supabase";
 import {
   DASHBOARD_ROUTE,
   OWNER_LOGIN_ROUTE,
-  OWNER_PASSWORD,
-  OWNER_USERNAME,
-  endDashboardSession,
-  hasDashboardSession,
-  startDashboardSession,
+  restoreOwnerSession,
+  signInOwner,
+  signOutOwner,
 } from "./lib/dashboardAuth";
 
 function AppContent() {
   const { t } = useLanguage();
-  const [dashboardAuthenticated, setDashboardAuthenticated] = useState(hasDashboardSession);
+  const [dashboardAuthenticated, setDashboardAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
   const [theme, setTheme] = useState(() => {
     try {
       return window.localStorage.getItem("hadad-theme") === "light" ? "light" : "dark";
@@ -63,6 +62,15 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    restoreOwnerSession()
+      .then(setDashboardAuthenticated)
+      .catch(() => setDashboardAuthenticated(false))
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
     if (path === "/dashboard") {
       navigate(DASHBOARD_ROUTE);
     } else if (path === DASHBOARD_ROUTE && !dashboardAuthenticated) {
@@ -76,7 +84,7 @@ function AppContent() {
     } else {
       setLoginOpen(false);
     }
-  }, [path, dashboardAuthenticated, navigate]);
+  }, [path, authLoading, dashboardAuthenticated, navigate]);
 
   const loadPublicProducts = useCallback(async () => {
     setDataLoading(true);
@@ -99,10 +107,12 @@ function AppContent() {
     try {
       const results = await Promise.allSettled([
         getProducts({ owner: true }),
+        getBookings(),
+        getAppointments(),
         getContactSettings(),
         getHomeSettings(),
       ]);
-      const setters = [setProducts, setContactSettings, setHomeSettings];
+      const setters = [setProducts, setBookings, setAppointments, setContactSettings, setHomeSettings];
       results.forEach((result, index) => {
         if (result.status === "fulfilled") setters[index](result.value);
       });
@@ -175,22 +185,27 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
-    endDashboardSession();
-    setDashboardAuthenticated(false);
-    setBookings([]);
-    setAppointments([]);
-    navigate("/");
+    try {
+      await signOutOwner();
+    } finally {
+      setDashboardAuthenticated(false);
+      setBookings([]);
+      setAppointments([]);
+      navigate("/");
+    }
   };
 
   const handleOwnerLogin = async (username, password) => {
-    if (username.trim() !== OWNER_USERNAME || password !== OWNER_PASSWORD) {
-      throw new Error("Username or password is incorrect.");
-    }
-    startDashboardSession();
+    if (!isSupabaseConfigured) throw new Error("Configure Supabase before signing in to the dashboard.");
+    await signInOwner(username, password);
     setDashboardAuthenticated(true);
     setLoginOpen(false);
     navigate(DASHBOARD_ROUTE);
   };
+
+  if ((path === DASHBOARD_ROUTE || path === "/dashboard") && authLoading) {
+    return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Checking owner access…")}</p></div></main>;
+  }
 
   if (path === DASHBOARD_ROUTE && dashboardAuthenticated && dataLoading) {
     return <main className="success-screen"><div className="success-content"><span>MOHAMED HADAD</span><p>{t("Loading…")}</p></div></main>;

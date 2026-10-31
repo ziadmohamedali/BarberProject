@@ -1,9 +1,10 @@
 const environment = import.meta.env || {};
 const configuredUrl = environment.VITE_SUPABASE_URL?.trim().replace(/\/$/, "");
 const supabaseAnonKey = environment.VITE_SUPABASE_ANON_KEY?.trim();
+const sessionStorageKey = "hadad-owner-session";
+let inMemorySession = null;
 
 try {
-  window.sessionStorage.removeItem("hadad-owner-session");
   window.localStorage.removeItem("hadad-supabase-session");
   window.localStorage.removeItem("hadad-pending-appointment");
   window.localStorage.removeItem("hadad-bookings-v1");
@@ -28,15 +29,31 @@ function isValidSupabaseUrl(value) {
 const supabaseUrl = isValidSupabaseUrl(configuredUrl) ? configuredUrl : "";
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-async function request(path, { method = "GET", body, headers = {} } = {}) {
+function readSession() {
+  try { return JSON.parse(window.sessionStorage.getItem(sessionStorageKey) || "null"); }
+  catch { return inMemorySession; }
+}
+
+function saveSession(session) {
+  try {
+    if (session) window.sessionStorage.setItem(sessionStorageKey, JSON.stringify(session));
+    else window.sessionStorage.removeItem(sessionStorageKey);
+  } catch { /* Auth remains available in memory only if tab storage is unavailable. */ }
+  inMemorySession = session || null;
+}
+
+async function request(path, { method = "GET", body, token, publicOnly = false, headers = {} } = {}) {
   if (!isSupabaseConfigured) {
     throw new Error("Supabase is not configured. Set a valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local, then reload the app.");
   }
+  const storedSession = token || publicOnly ? null : readSession();
   const isBinaryBody = typeof Blob !== "undefined" && body instanceof Blob;
-  const response = await fetch(`${supabaseUrl}${path}`, {
+  let activeToken = token || storedSession?.access_token || "";
+  const send = () => fetch(`${supabaseUrl}${path}`, {
     method,
     headers: {
       apikey: supabaseAnonKey,
+      ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
       ...(body === undefined ? {} : isBinaryBody
         ? { "Content-Type": body.type || "application/octet-stream" }
         : { "Content-Type": "application/json", Prefer: "return=representation" }),
@@ -44,6 +61,19 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
     },
     body: body === undefined ? undefined : isBinaryBody ? body : JSON.stringify(body),
   });
+  let response = await send();
+  if (response.status === 401 && storedSession?.refresh_token) {
+    try {
+      const refreshed = await authApi.refreshSession(storedSession.refresh_token);
+      activeToken = refreshed.access_token;
+      response = await send();
+    } catch {
+      // The stored session can no longer be refreshed; retry as a public visitor.
+      saveSession(null);
+      activeToken = "";
+      response = await send();
+    }
+  }
   const data = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
     const message = data?.message || data?.msg || data?.error_description || data?.error || data?.hint;
@@ -54,6 +84,74 @@ async function request(path, { method = "GET", body, headers = {} } = {}) {
   }
   return data;
 }
+
+export const authApi = {
+  async getSession() {
+    const session = readSession();
+    if (!session?.access_token) return null;
+    if (session.expires_at && session.expires_at * 1000 <= Date.now() && session.refresh_token) {
+      try {
+        return await this.refreshSession(session.refresh_token);
+      } catch {
+        saveSession(null);
+        return null;
+      }
+    }
+    return session;
+  },
+  async signInWithPassword(email, password) {
+    const session = await request("/auth/v1/token?grant_type=password", {
+      method: "POST",
+      body: { email, password },
+      publicOnly: true,
+    });
+    session.expires_at = Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600);
+    saveSession(session);
+    return session;
+  },
+  async refreshSession(refreshToken) {
+    const session = await request("/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      body: { refresh_token: refreshToken },
+      publicOnly: true,
+    });
+    session.expires_at = Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600);
+    saveSession(session);
+    return session;
+  },
+  async signOut() {
+    const session = readSession();
+    try {
+      if (session?.access_token) {
+        await request("/auth/v1/logout", { method: "POST", token: session.access_token });
+      }
+    } finally {
+      saveSession(null);
+    }
+  },
+  async getUser(session) {
+    if (!session?.access_token) return null;
+    const result = await request("/auth/v1/user", { token: session.access_token });
+    return result?.id ? result : null;
+  },
+  async verifyOwner(session) {
+    const result = await request("/rest/v1/rpc/is_hadad_owner", {
+      method: "POST",
+      body: {},
+      token: session?.access_token,
+    });
+    return result === true;
+  },
+  async updatePassword(password) {
+    const session = readSession();
+    if (!session?.access_token) throw new Error("Your owner session has expired. Please log in again.");
+    return request("/auth/v1/user", {
+      method: "PUT",
+      body: { password },
+      token: session.access_token,
+    });
+  },
+};
 
 export async function supabaseRequest(table, query = "", options = {}) {
   return request(`/rest/v1/${table}${query ? `?${query}` : ""}`, options);
@@ -84,10 +182,11 @@ export async function uploadStorageImage(file, onProgress = () => {}) {
 
   const extension = await validateProductImageFile(file);
   const objectPath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-  await new Promise((resolve, reject) => {
+  const uploadWithSession = (session) => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${supabaseUrl}/storage/v1/object/product-images/${objectPath}`);
     xhr.setRequestHeader("apikey", supabaseAnonKey);
+    if (session?.access_token) xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
     xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
     xhr.setRequestHeader("x-upsert", "false");
     xhr.upload.onprogress = (event) => {
@@ -109,6 +208,17 @@ export async function uploadStorageImage(file, onProgress = () => {}) {
     };
     xhr.send(file);
   });
+  const session = await authApi.getSession();
+  try {
+    await uploadWithSession(session);
+  } catch (error) {
+    if (error.status === 401 && session?.refresh_token) {
+      const refreshed = await authApi.refreshSession(session.refresh_token);
+      await uploadWithSession(refreshed);
+    } else {
+      throw error;
+    }
+  }
   return `${supabaseUrl}/storage/v1/object/public/product-images/${objectPath}`;
 }
 

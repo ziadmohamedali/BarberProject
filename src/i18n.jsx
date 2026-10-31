@@ -356,6 +356,8 @@ const translations = {
   "Invalid login credentials": "بيانات تسجيل الدخول غير صحيحة.",
   "Could not verify owner access. Check your connection and reload.": "تعذر التحقق من صلاحية المالك. تحقق من الاتصال وأعد تحميل الصفحة.",
   "Username or password is incorrect.": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+  "Checking owner access…": "جارٍ التحقق من صلاحية المالك…",
+  "Configure Supabase before signing in to the dashboard.": "يرجى إعداد Supabase قبل تسجيل الدخول إلى لوحة التحكم.",
   "Could not restore your owner session. Please sign in again.": "تعذر استعادة جلسة المالك. يرجى تسجيل الدخول مرة أخرى.",
   "Your session expired, and could not be cleared. Please reload and sign in again.": "انتهت صلاحية الجلسة وتعذر إنهاؤها. يرجى إعادة تحميل الصفحة وتسجيل الدخول مجددًا.",
   "Please wait…": "يرجى الانتظار…",
